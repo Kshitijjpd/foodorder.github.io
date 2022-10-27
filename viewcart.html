@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout Card</title>
+    <link href='https://www.soengsouy.com/favicon.ico' rel='icon' type='image/x-icon'/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- library validate -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.js"></script>
+    <!-- style css -->
+    <link rel="stylesheet" href="Style1.css">
+    
+</head>
+<body>
+
+<h2>cart and purchage</h2>
+<div class="row">
+    <div class="col-75" >
+        <div class="container">
+            <form id="validate" action="/action_page.php">
+                <div class="row">
+                  
+
+                    <div class="col-50">
+                        <h3>Payment</h3>
+                        <label for="fname">Accepted Cards</label>
+                        <div class="icon-container">
+                            <i class="fa fa-cc-visa" style="color:navy;"></i>
+                            <i class="fa fa-cc-amex" style="color:blue;"></i>
+                            <i class="fa fa-cc-mastercard" style="color:red;"></i>
+                            <i class="fa fa-cc-discover" style="color:orange;"></i>
+                        </div>
+
+                        <label for="cname">Name on Card</label>
+                        <input type="text" id="cname" name="cardname" placeholder="name"required>
+                        <label for="ccnum">Credit card number</label>
+                        <input type="text" id="ccnum" name="cardnumber" placeholder="1111-2222-3333-4444"required>
+                        <label for="expmonth">Exp Month</label>
+                        <input type="text" id="expmonth" name="expmonth" placeholder="month"required>
+                        <div class="row">
+                            <div class="col-50">
+                                <label for="expyear">Exp Year</label>
+                                <input type="text" id="expyear" name="expyear" placeholder="2021"required>
+                            </div>
+                            <div class="col-50">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" name="cvv" placeholder="352"required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label>
+                <input type="checkbox" checked="checked" name="sameadr"> Shipping address same as billing
+                </label>
+                <input type="submit" value="Continue to checkout" class="btn">
+            </form>
+        </div>
+    </div>
+    <div class="col-25">
+     
+            <div class="container">
+                <h4>Cart <span class="price" style="color:black"><i class="fa fa-shopping-cart"></i> <b></b></span></h4>
+                <form>
+                    <p><a href="#"> SOMASHA </a><input type="search" list="FOOD1">
+                        <input type="number" id="firstNumber">
+                        <input type="button" onClick="multiplyBy()" Value="ADD" />
+                        <span class="price"><span id = "result1"></span></span></p>
+
+                       
+                        <p><a href="#"> papari </a><input type="search" list="FOOD2">
+                            <input type="number" id="secondNumber">
+                            <input type="button" onClick="multiplyBy1()" Value="ADD" />
+                            <span class="price"><span id = "results"></span></span></p>
+
+                            <p><a href="#"> CHAAT </a><input type="search" list="FOOD3">
+                                <input type="number" id="thirdNumber">
+                                <input type="button" onClick="multiplyBy2()" Value="ADD" />
+                                <span class="price"><span id = "result3"></span></span></p>
+
+                                <p><a href="#">MAGGI</a><input type="search" list="FOOD4">
+                                    <input type="number" id="forthNumber">
+                                    <input type="button" onClick="multiplyBy3()" Value="ADD" />
+                                    <span class="price"><span id = "result4"></span></span></p>
+
+
+
+                                    <p><a href="#">CACKE</a><input type="search" list="FOOD5">
+                                        <input type="number" id="fiveNumber">
+                                        <input type="button" onClick="multiplyBy4()" Value="ADD" />
+                                        <span class="price"><span id = "result5"></span></span></p>
+
+
+                                        <p><a href="#">ice cream</a><input type="search" list="FOOD6">
+                                            <input type="number" id="sixNumber">
+                                            <input type="button" onClick="multiplyBy5()" Value="ADD" />
+                                            <span class="price"><span id = "result6"></span></span></p>
+                    
+                    
+                                <datalist id="FOOD1">
+                                <option value="SOMASHA : 10rs">10</option>
+
+                                </datalist>
+
+                                    <datalist id="FOOD2">
+                                        
+                                        <option value="Papari: 20rs">20</option>
+                                    </datalist>
+
+                                        <datalist id="FOOD3">
+                                            
+                                            <option value="CHAAT: 30rs">30</option>
+                                        </datalist>
+
+                                            <datalist id="FOOD4">
+                                                    
+                                            <option value="MAGGI: 40rs">40</option>
+                                            </datalist>
+
+                                                <datalist id="FOOD5">
+                                                        
+                                                <option value="CACKE :60rs">60</option>
+                                                </datalist>
+                                                        
+                                                    <datalist id="FOOD6">
+                                                            
+                                                    <option value="ice CREAM :70rs">70</option>
+                                                    </datalist>
+                    
+                </form>
+                <hr>
+                <p><input type="button" onClick="multiplyBy78()" Value="TOTAL" />
+                <span class="price"><span id = "result78"></span></span></p>
+               
+            </div>
+        
+    </div>
+</div>
+
+<!-- script validate js -->
+<script>
+    function multiplyBy()
+{
+        num1 = document.getElementById("firstNumber").value;
+        
+        document.getElementById("result1").innerHTML = num1 * 10;
+}
+function multiplyBy1()
+{
+        num2 = document.getElementById("secondNumber").value;
+        
+        document.getElementById("results").innerHTML = num2 * 20;
+}
+function multiplyBy2()
+{
+        num3 = document.getElementById("thirdNumber").value;
+        
+        document.getElementById("result3").innerHTML = num3 * 30;
+}
+
+function multiplyBy3()
+{
+        num4= document.getElementById("forthNumber").value;
+        
+        document.getElementById("result4").innerHTML = num4 * 40;
+}
+
+function multiplyBy4()
+{
+        num5 = document.getElementById("fiveNumber").value;
+        
+        document.getElementById("result5").innerHTML = num5 * 60;
+}
+function multiplyBy5()
+{
+        num6 = document.getElementById("sixNumber").value;
+        
+        document.getElementById("result6").innerHTML = num6 * 70;
+}
+function multiplyBy78()
+{
+    num1 = document.getElementById("firstNumber").value;
+    num2 = document.getElementById("secondNumber").value;
+    num3 = document.getElementById("thirdNumber").value; 
+    num4= document.getElementById("forthNumber").value; 
+    num5 = document.getElementById("fiveNumber").value;
+    num6 = document.getElementById("sixNumber").value;
+        document.getElementById("result78").innerHTML = num1 * 10 + num2 * 20 +num3 * 30 +num4 * 40 +num5 * 60 +  num6 * 70;
+}
+
+    $('#validate').validate({
+        roles: {
+            
+            
+            cardname: {
+                required: true,
+            },
+            cardnumber: {
+                required: true,
+            },
+            expmonth: {
+                required: true,
+            },
+            expyear: {
+                required: true,
+            },
+            cvv: {
+                required: true,
+            },
+           
+        },
+        messages: {
+            cardname:"Please input card name*",
+            cardnumber:"Please input card number*",
+            expmonth:"Please input exp month*",
+            expyear:"Please input exp year*",
+            cvv:"Please input cvv*",
+        },
+    });
+</script>
+</body>
+</html

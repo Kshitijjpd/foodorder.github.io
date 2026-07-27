@@ -362,7 +362,7 @@
     </button>
 </div>
 
-<div class="stats-row">
+<div class="stats-row" id="stats-row" style="display:none;">
     <div class="stat-card">
         <div class="stat-label">Total Orders</div>
         <div class="stat-value orders" id="stat-orders">-</div>
@@ -628,9 +628,11 @@
         var btn = document.getElementById('admin-btn');
         var panel = document.getElementById('admin-panel');
         var offersPanel = document.getElementById('offers-panel');
+        var statsRow = document.getElementById('stats-row');
         if (isAdmin) {
             btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
             btn.classList.add('logged-in');
+            statsRow.style.display = 'grid';
             if (isSuperAdmin) panel.classList.add('active');
             else panel.classList.remove('active');
             if (canManageOffers) offersPanel.classList.add('active');
@@ -638,6 +640,7 @@
         } else {
             btn.innerHTML = '<i class="fas fa-user-shield"></i> Admin';
             btn.classList.remove('logged-in');
+            statsRow.style.display = 'none';
             panel.classList.remove('active');
             offersPanel.classList.remove('active');
         }

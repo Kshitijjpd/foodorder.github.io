@@ -1,42 +1,123 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popular Foods</title>
 
-
-    <!-- font awesome cdn link  -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        .box .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .box .btn-cart {
+            display: inline-block;
+            padding: .8rem 2.5rem;
+            background: var(--red);
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.7rem;
+            border-radius: .5rem;
+            border: .2rem solid var(--red);
+            margin-top: 1rem;
+            transition: all .3s;
+            text-decoration: none;
+        }
+
+        .box .btn-cart:hover {
+            background: #e02020;
+            border-color: #e02020;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 56, 56, 0.3);
+        }
+
+        .box .btn-cart.added {
+            background: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .box .btn-cart.added:hover {
+            background: #219a52;
+            border-color: #219a52;
+        }
+
+        .cart-badge {
+            position: relative;
+        }
+
+        .cart-badge .count {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background: var(--red);
+            color: #fff;
+            font-size: 1.2rem;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 3rem;
+            right: 3rem;
+            background: #333;
+            color: #fff;
+            padding: 1.2rem 2.5rem;
+            border-radius: 1rem;
+            font-size: 1.6rem;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all .3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,.2);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast i {
+            color: #27ae60;
+            margin-right: .5rem;
+        }
+    </style>
 </head>
 <body>
     <header>
-
-        <a href="#" class="logo"><i class="fas fa-utensils"></i>food</a>
-
+        <a href="index.html" class="logo"><i class="fas fa-utensils"></i>food</a>
         <div id="menu-bar" class="fas fa-bars"></div>
-
         <nav class="navbar">
             <a href="index.html">home</a>
             <a href="speciality.html">speciality</a>
-            <a href="#popular">popular</a>
+            <a href="popular.html">popular</a>
             <a href="gallery.html">gallery</a>
             <a href="review.html">review</a>
             <a href="order.html">order</a>
-            <a herf="order">viewcart</a>
+            <a href="viewcart.html" class="cart-badge">
+                viewcart <span class="count" id="cart-count">0</span>
+            </a>
         </nav>
-
     </header>
-    <br><br>
-    <br><br>
+
+    <br><br><br><br>
 
     <section class="popular" id="popular">
-
         <h1 class="heading"> most <span>popular</span> foods </h1>
 
         <div class="box-container">
-
             <div class="box">
                 <span class="price"> 20rs - 30rs </span>
                 <img src="images/p-1.jpg" alt="">
@@ -48,8 +129,14 @@
                     <i class="fas fa-star"></i>
                     <i class="far fa-star"></i>
                 </div>
-                <a href="order.html" class="btn">order now</a>
+                <div class="btn-group">
+                    <a href="order.html" class="btn">order now</a>
+                    <button class="btn-cart" onclick="addToCart('Tasty Burger', 25, this)">
+                        <i class="fas fa-cart-plus"></i> add to cart
+                    </button>
+                </div>
             </div>
+
             <div class="box">
                 <span class="price"> 10rs - 20rs </span>
                 <img src="images/p-2.jpg" alt="">
@@ -61,8 +148,14 @@
                     <i class="fas fa-star"></i>
                     <i class="far fa-star"></i>
                 </div>
-                <a href="order.html" class="btn">order now</a>
+                <div class="btn-group">
+                    <a href="order.html" class="btn">order now</a>
+                    <button class="btn-cart" onclick="addToCart('Tasty Cakes', 15, this)">
+                        <i class="fas fa-cart-plus"></i> add to cart
+                    </button>
+                </div>
             </div>
+
             <div class="box">
                 <span class="price"> 5rs - 20rs </span>
                 <img src="images/p-3.jpg" alt="">
@@ -74,8 +167,14 @@
                     <i class="fas fa-star"></i>
                     <i class="far fa-star"></i>
                 </div>
-                <a href="order.html" class="btn">order now</a>
+                <div class="btn-group">
+                    <a href="order.html" class="btn">order now</a>
+                    <button class="btn-cart" onclick="addToCart('Tasty Sweets', 10, this)">
+                        <i class="fas fa-cart-plus"></i> add to cart
+                    </button>
+                </div>
             </div>
+
             <div class="box">
                 <span class="price"> 10rs- 20rs </span>
                 <img src="images/p-4.jpg" alt="">
@@ -87,8 +186,14 @@
                     <i class="fas fa-star"></i>
                     <i class="far fa-star"></i>
                 </div>
-                <a href="order.html" class="btn">order now</a>
+                <div class="btn-group">
+                    <a href="order.html" class="btn">order now</a>
+                    <button class="btn-cart" onclick="addToCart('Tasty Cupcakes', 15, this)">
+                        <i class="fas fa-cart-plus"></i> add to cart
+                    </button>
+                </div>
             </div>
+
             <div class="box">
                 <span class="price"> 5rs- 20rs </span>
                 <img src="images/p-5.jpg" alt="">
@@ -100,8 +205,14 @@
                     <i class="fas fa-star"></i>
                     <i class="far fa-star"></i>
                 </div>
-                <a href="order.html" class="btn">order now</a>
+                <div class="btn-group">
+                    <a href="order.html" class="btn">order now</a>
+                    <button class="btn-cart" onclick="addToCart('Cold Drinks', 10, this)">
+                        <i class="fas fa-cart-plus"></i> add to cart
+                    </button>
+                </div>
             </div>
+
             <div class="box">
                 <span class="price"> 5rs - 20rs </span>
                 <img src="images/p-6.jpg" alt="">
@@ -113,11 +224,76 @@
                     <i class="fas fa-star"></i>
                     <i class="far fa-star"></i>
                 </div>
-                <a href="order.html" class="btn">order now</a>
+                <div class="btn-group">
+                    <a href="order.html" class="btn">order now</a>
+                    <button class="btn-cart" onclick="addToCart('Cold Ice-Cream', 10, this)">
+                        <i class="fas fa-cart-plus"></i> add to cart
+                    </button>
+                </div>
             </div>
-
         </div>
-
     </section>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i> <span id="toast-msg">Item added to cart!</span>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function getCart() {
+            return JSON.parse(localStorage.getItem('foodCart') || '[]');
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('foodCart', JSON.stringify(cart));
+            updateCartCount();
+        }
+
+        function updateCartCount() {
+            var cart = getCart();
+            var total = 0;
+            for (var i = 0; i < cart.length; i++) {
+                total += cart[i].qty;
+            }
+            var el = document.getElementById('cart-count');
+            if (el) el.textContent = total;
+        }
+
+        function addToCart(name, price, btn) {
+            var cart = getCart();
+            var found = false;
+            for (var i = 0; i < cart.length; i++) {
+                if (cart[i].name === name) {
+                    cart[i].qty += 1;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                cart.push({ name: name, price: price, qty: 1 });
+            }
+            saveCart(cart);
+
+            btn.classList.add('added');
+            btn.innerHTML = '<i class="fas fa-check"></i> added';
+            setTimeout(function() {
+                btn.classList.remove('added');
+                btn.innerHTML = '<i class="fas fa-cart-plus"></i> add to cart';
+            }, 1500);
+
+            showToast(name + ' added to cart!');
+        }
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        updateCartCount();
+    </script>
 </body>
 </html>

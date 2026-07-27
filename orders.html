@@ -110,7 +110,7 @@
         .no-orders { text-align: center; padding: 4rem; color: #aaa; }
         .no-orders i { font-size: 3rem; margin-bottom: 1rem; display: block; color: #ddd; }
 
-        /* Admin Login Modal */
+        /* Modal */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 10000;
@@ -119,7 +119,7 @@
         .modal-overlay.active { display: flex; }
 
         .modal {
-            background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
+            background: #fff; border-radius: 16px; max-width: 480px; width: 100%;
             animation: slideUp 0.3s ease; overflow: hidden;
         }
         @keyframes slideUp {
@@ -145,12 +145,15 @@
             display: block; font-size: 0.8rem; font-weight: 700; color: #555;
             margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .input-group input {
+        .input-group input, .input-group select {
             width: 100%; padding: 0.7rem 0.9rem; border: 2px solid #eee;
             border-radius: 10px; font-size: 0.9rem; font-family: 'Nunito', sans-serif;
-            outline: none; color: #333; transition: border-color 0.2s;
+            outline: none; color: #333; transition: border-color 0.2s; background: #fff;
         }
-        .input-group input:focus { border-color: #3498db; }
+        .input-group input:focus, .input-group select:focus { border-color: #3498db; }
+
+        .form-row { display: flex; gap: 1rem; }
+        .form-row .input-group { flex: 1; }
 
         .modal-btn {
             width: 100%; padding: 0.8rem; border: none; border-radius: 10px;
@@ -159,9 +162,10 @@
         }
         .modal-btn.login { background: linear-gradient(135deg, #2c3e50, #3498db); }
         .modal-btn.login:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(52,152,219,0.3); }
-        .modal-btn.danger { background: #e74c3c; margin-top: 0.5rem; }
         .modal-btn.success { background: #27ae60; margin-top: 0.5rem; }
         .modal-btn.success:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(39,174,96,0.3); }
+        .modal-btn.offer-btn { background: linear-gradient(135deg, #e65100, #ff9800); margin-top: 0.5rem; }
+        .modal-btn.offer-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(255,152,0,0.3); }
 
         .modal-error {
             background: #fce4ec; color: #c62828; padding: 0.6rem; border-radius: 8px;
@@ -198,6 +202,7 @@
         .admin-list-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 0.6rem 0; border-bottom: 1px solid #f5f5f5; font-size: 0.88rem;
+            flex-wrap: wrap; gap: 0.5rem;
         }
         .admin-list-item:last-child { border-bottom: none; }
         .admin-email { font-weight: 600; color: #333; }
@@ -207,6 +212,16 @@
         }
         .admin-role.super { background: #fff3e0; color: #e65100; }
         .admin-role.admin { background: #e3f2fd; color: #1565c0; }
+
+        .admin-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+        .perm-toggle {
+            display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem;
+            color: #777; background: #f9f9f9; padding: 0.25rem 0.6rem; border-radius: 6px;
+        }
+        .perm-toggle input[type="checkbox"] {
+            width: 15px; height: 15px; cursor: pointer; accent-color: #e65100;
+        }
 
         .btn-remove-admin {
             background: #fce4ec; color: #c62828; border: none; padding: 0.3rem 0.8rem;
@@ -231,6 +246,94 @@
         }
         .btn-add-admin:hover { background: #219a52; }
 
+        /* Offers Panel */
+        .offers-panel {
+            display: none; max-width: 1200px; margin: 0 auto 1.5rem;
+            padding: 0 1.5rem;
+        }
+        .offers-panel.active { display: block; }
+
+        .offers-panel-card {
+            background: #fff; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .offers-panel-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .offers-panel-header h3 { font-size: 1rem; font-weight: 700; color: #222; }
+        .btn-new-offer {
+            background: linear-gradient(135deg, #e65100, #ff9800); color: #fff;
+            border: none; padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.82rem;
+            transition: all 0.2s;
+        }
+        .btn-new-offer:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,152,0,0.3); }
+
+        .offers-panel-body { padding: 1.25rem 1.5rem; }
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+
+        .offer-card {
+            border-radius: 12px; overflow: hidden;
+            border: 2px solid #f0f0f0; transition: all 0.2s;
+        }
+        .offer-card:hover { border-color: #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+        .offer-card.inactive { opacity: 0.6; }
+
+        .offer-card-top {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #fff3e0, #fff8e1);
+        }
+        .offer-card.inactive .offer-card-top { background: #f5f5f5; }
+
+        .offer-card-top-row {
+            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;
+        }
+        .offer-name { font-size: 1rem; font-weight: 800; color: #333; }
+        .offer-badge {
+            font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.5rem;
+            border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .offer-badge.active-b { background: #e8f5e9; color: #2e7d32; }
+        .offer-badge.inactive-b { background: #eee; color: #999; }
+
+        .offer-discount-display {
+            font-size: 1.8rem; font-weight: 800; color: #e65100;
+            margin: 0.3rem 0;
+        }
+        .offer-card.inactive .offer-discount-display { color: #999; }
+
+        .offer-card-details { padding: 0.75rem 1.25rem; }
+        .offer-detail-row {
+            display: flex; justify-content: space-between; font-size: 0.82rem;
+            padding: 0.25rem 0; color: #666;
+        }
+        .offer-detail-row .val { font-weight: 700; color: #333; }
+
+        .offer-card-actions {
+            padding: 0.6rem 1.25rem; background: #fafafa;
+            display: flex; justify-content: flex-end; gap: 0.5rem;
+            border-top: 1px solid #f0f0f0;
+        }
+        .offer-card-actions button {
+            padding: 0.35rem 0.8rem; border-radius: 6px; border: none; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.75rem;
+            transition: all 0.15s;
+        }
+        .btn-toggle-offer { background: #fff3e0; color: #f57f17; }
+        .btn-toggle-offer:hover { background: #ffe0b2; }
+        .btn-toggle-offer.activate { background: #e8f5e9; color: #2e7d32; }
+        .btn-toggle-offer.activate:hover { background: #c8e6c9; }
+        .btn-edit-offer { background: #e3f2fd; color: #1565c0; }
+        .btn-edit-offer:hover { background: #bbdefb; }
+        .btn-delete-offer { background: #fce4ec; color: #c62828; }
+        .btn-delete-offer:hover { background: #f8bbd0; }
+
+        .no-offers {
+            text-align: center; padding: 2rem; color: #bbb; font-size: 0.9rem;
+        }
+        .no-offers i { font-size: 2rem; display: block; margin-bottom: 0.5rem; color: #ddd; }
+
         .toast {
             position: fixed; bottom: 2rem; right: 2rem; background: #333; color: #fff;
             padding: 0.8rem 1.5rem; border-radius: 10px; font-size: 0.85rem; z-index: 99999;
@@ -243,6 +346,9 @@
             .customer-info { gap: 1rem; }
             .add-admin-row { flex-direction: column; }
             .order-card-header { flex-direction: column; align-items: flex-start; }
+            .form-row { flex-direction: column; gap: 0; }
+            .offers-grid { grid-template-columns: 1fr; }
+            .admin-list-item { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -271,7 +377,7 @@
     </div>
 </div>
 
-<!-- Admin Panel (visible only when logged in) -->
+<!-- Admin Panel (super admin only) -->
 <div class="admin-panel" id="admin-panel">
     <div class="admin-panel-card">
         <div class="admin-panel-header">
@@ -286,6 +392,21 @@
                     <i class="fas fa-plus"></i> Add Admin
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Offers Panel (admins with permission + super admin) -->
+<div class="offers-panel" id="offers-panel">
+    <div class="offers-panel-card">
+        <div class="offers-panel-header">
+            <h3><i class="fas fa-tags"></i> Offers & Discounts</h3>
+            <button class="btn-new-offer" onclick="openOfferModal()">
+                <i class="fas fa-plus"></i> New Offer
+            </button>
+        </div>
+        <div class="offers-panel-body">
+            <div class="offers-grid" id="offers-list"></div>
         </div>
     </div>
 </div>
@@ -347,6 +468,49 @@
     </div>
 </div>
 
+<!-- Create Offer Modal -->
+<div class="modal-overlay" id="offer-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-tags"></i> <span id="offer-modal-title">Create New Offer</span></h2>
+            <button class="modal-close" onclick="closeOfferModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-error" id="offer-error"></div>
+            <div class="modal-success" id="offer-success"></div>
+            <input type="hidden" id="offer-edit-id" value="">
+            <div class="input-group">
+                <label>Offer Name</label>
+                <input type="text" id="offer-name" placeholder="e.g. Summer Special, Weekend Deal">
+            </div>
+            <div class="form-row">
+                <div class="input-group">
+                    <label>Discount Type</label>
+                    <select id="offer-type">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="flat">Flat Amount (₹)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Discount Value</label>
+                    <input type="number" id="offer-value" placeholder="e.g. 20" min="1">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Minimum Order Amount (₹)</label>
+                <input type="number" id="offer-min" placeholder="e.g. 100 (0 for no minimum)" min="0">
+            </div>
+            <div class="input-group">
+                <label>Description (optional)</label>
+                <input type="text" id="offer-desc" placeholder="e.g. Get 20% off on orders above ₹100">
+            </div>
+            <button class="modal-btn offer-btn" onclick="saveOffer()">
+                <i class="fas fa-check"></i> <span id="offer-save-text">Create Offer</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -363,6 +527,7 @@
     var isAdmin = false;
     var currentAdminEmail = null;
     var isSuperAdmin = false;
+    var canManageOffers = false;
 
     var emojiMap = {
         'Samosa': '🥟', 'Papri Chaat': '🍽️', 'Chaat': '🍛',
@@ -392,6 +557,7 @@
                     email: 'kkumar2k100@gmail.com',
                     password: 'Kshaditij@123',
                     role: 'super_admin',
+                    can_manage_offers: true,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
@@ -399,22 +565,15 @@
     }
     seedSuperAdmin();
 
+    /* ─── Login / Logout ─── */
+
     function openLoginModal() {
-        if (isAdmin) {
-            adminLogout();
-            return;
-        }
+        if (isAdmin) { adminLogout(); return; }
         document.getElementById('login-modal').classList.add('active');
         document.getElementById('login-error').classList.remove('show');
     }
-
-    function closeLoginModal() {
-        document.getElementById('login-modal').classList.remove('active');
-    }
-
-    function closeAddAdminModal() {
-        document.getElementById('add-admin-modal').classList.remove('active');
-    }
+    function closeLoginModal() { document.getElementById('login-modal').classList.remove('active'); }
+    function closeAddAdminModal() { document.getElementById('add-admin-modal').classList.remove('active'); }
 
     function adminLogin() {
         var email = document.getElementById('login-email').value.trim();
@@ -426,7 +585,6 @@
             errEl.classList.add('show');
             return;
         }
-
         errEl.classList.remove('show');
 
         db.collection('admins').doc(email).get().then(function(doc) {
@@ -435,20 +593,22 @@
                 errEl.classList.add('show');
                 return;
             }
-            var adminData = doc.data();
-            if (adminData.password !== pass) {
+            var d = doc.data();
+            if (d.password !== pass) {
                 errEl.textContent = 'Wrong password. Try again.';
                 errEl.classList.add('show');
                 return;
             }
             isAdmin = true;
             currentAdminEmail = email;
-            isSuperAdmin = adminData.role === 'super_admin';
+            isSuperAdmin = d.role === 'super_admin';
+            canManageOffers = isSuperAdmin || d.can_manage_offers === true;
             sessionStorage.setItem('adminEmail', email);
             closeLoginModal();
             updateAdminUI();
             loadOrders();
             if (isSuperAdmin) loadAdmins();
+            if (canManageOffers) loadOffers();
             showToast('Welcome, Admin!');
         });
     }
@@ -457,6 +617,7 @@
         isAdmin = false;
         currentAdminEmail = null;
         isSuperAdmin = false;
+        canManageOffers = false;
         sessionStorage.removeItem('adminEmail');
         updateAdminUI();
         loadOrders();
@@ -466,16 +627,23 @@
     function updateAdminUI() {
         var btn = document.getElementById('admin-btn');
         var panel = document.getElementById('admin-panel');
+        var offersPanel = document.getElementById('offers-panel');
         if (isAdmin) {
             btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
             btn.classList.add('logged-in');
             if (isSuperAdmin) panel.classList.add('active');
+            else panel.classList.remove('active');
+            if (canManageOffers) offersPanel.classList.add('active');
+            else offersPanel.classList.remove('active');
         } else {
             btn.innerHTML = '<i class="fas fa-user-shield"></i> Admin';
             btn.classList.remove('logged-in');
             panel.classList.remove('active');
+            offersPanel.classList.remove('active');
         }
     }
+
+    /* ─── Admin Management (super admin) ─── */
 
     function loadAdmins() {
         db.collection('admins').onSnapshot(function(snapshot) {
@@ -484,16 +652,24 @@
                 var admin = doc.data();
                 var roleClass = admin.role === 'super_admin' ? 'super' : 'admin';
                 var roleLabel = admin.role === 'super_admin' ? 'Super Admin' : 'Admin';
-                var removeBtn = '';
-                if (isSuperAdmin && admin.email !== currentAdminEmail) {
-                    removeBtn = '<button class="btn-remove-admin" onclick="removeAdmin(\'' + admin.email + '\')"><i class="fas fa-trash"></i> Remove</button>';
+                var controlsHtml = '';
+
+                if (isSuperAdmin && admin.role !== 'super_admin') {
+                    var checked = admin.can_manage_offers ? 'checked' : '';
+                    controlsHtml +=
+                        '<label class="perm-toggle">' +
+                        '<input type="checkbox" ' + checked + ' onchange="toggleOfferPerm(\'' + admin.email + '\', this.checked)">' +
+                        ' Offers' +
+                        '</label>';
+                    controlsHtml += '<button class="btn-remove-admin" onclick="removeAdmin(\'' + admin.email + '\')"><i class="fas fa-trash"></i></button>';
                 }
+
                 html +=
                     '<div class="admin-list-item">' +
                     '<span class="admin-email">' + admin.email + '</span>' +
-                    '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+                    '<div class="admin-controls">' +
                     '<span class="admin-role ' + roleClass + '">' + roleLabel + '</span>' +
-                    removeBtn +
+                    controlsHtml +
                     '</div></div>';
             });
             document.getElementById('admin-list').innerHTML = html;
@@ -517,21 +693,14 @@
         errEl.classList.remove('show');
         sucEl.classList.remove('show');
 
-        if (!email || !pass) {
-            errEl.textContent = 'Enter email and password';
-            errEl.classList.add('show');
-            return;
-        }
-        if (pass.length < 6) {
-            errEl.textContent = 'Password must be at least 6 characters';
-            errEl.classList.add('show');
-            return;
-        }
+        if (!email || !pass) { errEl.textContent = 'Enter email and password'; errEl.classList.add('show'); return; }
+        if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; errEl.classList.add('show'); return; }
 
         db.collection('admins').doc(email).set({
             email: email,
             password: pass,
             role: 'admin',
+            can_manage_offers: false,
             createdBy: currentAdminEmail,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(function() {
@@ -546,9 +715,153 @@
     function removeAdmin(email) {
         if (!confirm('Remove ' + email + ' from admins?')) return;
         db.collection('admins').doc(email).delete().then(function() {
-            showToast(email + ' removed from admins');
+            showToast(email + ' removed');
         });
     }
+
+    function toggleOfferPerm(email, val) {
+        db.collection('admins').doc(email).update({ can_manage_offers: val }).then(function() {
+            showToast(email + ': offers ' + (val ? 'enabled' : 'disabled'));
+        });
+    }
+
+    /* ─── Offers Management ─── */
+
+    function openOfferModal(editId) {
+        document.getElementById('offer-error').classList.remove('show');
+        document.getElementById('offer-success').classList.remove('show');
+        document.getElementById('offer-edit-id').value = '';
+        document.getElementById('offer-name').value = '';
+        document.getElementById('offer-type').value = 'percentage';
+        document.getElementById('offer-value').value = '';
+        document.getElementById('offer-min').value = '';
+        document.getElementById('offer-desc').value = '';
+
+        if (editId) {
+            document.getElementById('offer-modal-title').textContent = 'Edit Offer';
+            document.getElementById('offer-save-text').textContent = 'Update Offer';
+            document.getElementById('offer-edit-id').value = editId;
+            db.collection('offers').doc(editId).get().then(function(doc) {
+                if (doc.exists) {
+                    var o = doc.data();
+                    document.getElementById('offer-name').value = o.name || '';
+                    document.getElementById('offer-type').value = o.discountType || 'percentage';
+                    document.getElementById('offer-value').value = o.discountValue || '';
+                    document.getElementById('offer-min').value = o.minOrder || 0;
+                    document.getElementById('offer-desc').value = o.description || '';
+                }
+            });
+        } else {
+            document.getElementById('offer-modal-title').textContent = 'Create New Offer';
+            document.getElementById('offer-save-text').textContent = 'Create Offer';
+        }
+
+        document.getElementById('offer-modal').classList.add('active');
+    }
+
+    function closeOfferModal() {
+        document.getElementById('offer-modal').classList.remove('active');
+    }
+
+    function saveOffer() {
+        var name = document.getElementById('offer-name').value.trim();
+        var type = document.getElementById('offer-type').value;
+        var value = Number(document.getElementById('offer-value').value);
+        var minOrder = Number(document.getElementById('offer-min').value) || 0;
+        var desc = document.getElementById('offer-desc').value.trim();
+        var editId = document.getElementById('offer-edit-id').value;
+        var errEl = document.getElementById('offer-error');
+
+        errEl.classList.remove('show');
+
+        if (!name) { errEl.textContent = 'Enter offer name'; errEl.classList.add('show'); return; }
+        if (!value || value <= 0) { errEl.textContent = 'Enter valid discount value'; errEl.classList.add('show'); return; }
+        if (type === 'percentage' && value > 100) { errEl.textContent = 'Percentage cannot be more than 100'; errEl.classList.add('show'); return; }
+
+        var offerData = {
+            name: name,
+            discountType: type,
+            discountValue: value,
+            minOrder: minOrder,
+            description: desc || (type === 'percentage' ? value + '% off' : '₹' + value + ' off') + (minOrder > 0 ? ' on orders above ₹' + minOrder : ''),
+            active: true,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (editId) {
+            offerData.updatedBy = currentAdminEmail;
+            db.collection('offers').doc(editId).update(offerData).then(function() {
+                closeOfferModal();
+                showToast('Offer updated!');
+            });
+        } else {
+            offerData.createdBy = currentAdminEmail;
+            offerData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            db.collection('offers').add(offerData).then(function() {
+                closeOfferModal();
+                showToast('Offer created!');
+            });
+        }
+    }
+
+    function toggleOffer(id, currentlyActive) {
+        db.collection('offers').doc(id).update({ active: !currentlyActive }).then(function() {
+            showToast(currentlyActive ? 'Offer deactivated' : 'Offer activated');
+        });
+    }
+
+    function deleteOffer(id) {
+        if (!confirm('Delete this offer permanently?')) return;
+        db.collection('offers').doc(id).delete().then(function() {
+            showToast('Offer deleted');
+        });
+    }
+
+    function loadOffers() {
+        db.collection('offers').onSnapshot(function(snapshot) {
+            var container = document.getElementById('offers-list');
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="no-offers"><i class="fas fa-tags"></i>No offers yet. Create one!</div>';
+                return;
+            }
+            var html = '';
+            snapshot.forEach(function(doc) {
+                var o = doc.data();
+                var isActive = o.active !== false;
+                var discountDisplay = o.discountType === 'percentage'
+                    ? o.discountValue + '% OFF'
+                    : '₹' + o.discountValue + ' OFF';
+                var toggleClass = isActive ? '' : 'activate';
+                var toggleIcon = isActive ? 'fa-pause' : 'fa-play';
+                var toggleLabel = isActive ? 'Deactivate' : 'Activate';
+
+                html +=
+                    '<div class="offer-card ' + (isActive ? '' : 'inactive') + '">' +
+                    '<div class="offer-card-top">' +
+                    '<div class="offer-card-top-row">' +
+                    '<span class="offer-name">' + o.name + '</span>' +
+                    '<span class="offer-badge ' + (isActive ? 'active-b' : 'inactive-b') + '">' + (isActive ? 'Active' : 'Inactive') + '</span>' +
+                    '</div>' +
+                    '<div class="offer-discount-display">' + discountDisplay + '</div>' +
+                    '</div>' +
+                    '<div class="offer-card-details">' +
+                    '<div class="offer-detail-row"><span>Min Order</span><span class="val">' + (o.minOrder > 0 ? '₹' + o.minOrder : 'No minimum') + '</span></div>' +
+                    '<div class="offer-detail-row"><span>Type</span><span class="val">' + (o.discountType === 'percentage' ? 'Percentage' : 'Flat Discount') + '</span></div>' +
+                    (o.description ? '<div class="offer-detail-row"><span>Details</span><span class="val">' + o.description + '</span></div>' : '') +
+                    '<div class="offer-detail-row"><span>Created By</span><span class="val">' + (o.createdBy || '-') + '</span></div>' +
+                    '</div>' +
+                    '<div class="offer-card-actions">' +
+                    '<button class="btn-edit-offer" onclick="openOfferModal(\'' + doc.id + '\')"><i class="fas fa-edit"></i> Edit</button>' +
+                    '<button class="btn-toggle-offer ' + toggleClass + '" onclick="toggleOffer(\'' + doc.id + '\',' + isActive + ')"><i class="fas ' + toggleIcon + '"></i> ' + toggleLabel + '</button>' +
+                    '<button class="btn-delete-offer" onclick="deleteOffer(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>' +
+                    '</div>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        });
+    }
+
+    /* ─── Orders ─── */
 
     function cancelOrder(orderId) {
         if (!confirm('Cancel order ' + orderId + '?')) return;
@@ -661,17 +974,22 @@
         });
     }
 
+    /* ─── Session restore ─── */
+
     function checkSavedSession() {
         var savedEmail = sessionStorage.getItem('adminEmail');
         if (savedEmail) {
             db.collection('admins').doc(savedEmail).get().then(function(doc) {
                 if (doc.exists) {
+                    var d = doc.data();
                     isAdmin = true;
                     currentAdminEmail = savedEmail;
-                    isSuperAdmin = doc.data().role === 'super_admin';
+                    isSuperAdmin = d.role === 'super_admin';
+                    canManageOffers = isSuperAdmin || d.can_manage_offers === true;
                     updateAdminUI();
                     loadOrders();
                     if (isSuperAdmin) loadAdmins();
+                    if (canManageOffers) loadOffers();
                 }
             });
         }

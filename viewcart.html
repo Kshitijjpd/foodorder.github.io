@@ -290,6 +290,46 @@
         }
         .btn-print:hover { border-color: #333; color: #333; }
 
+        /* Offers */
+        .offers-section { margin-top: 1rem; padding-top: 1rem; border-top: 2px dashed #eee; }
+        .offers-title {
+            font-size: 0.85rem; font-weight: 700; color: #e65100;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .offer-item {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.7rem 0.9rem; background: #fff8e1; border: 2px solid #ffe082;
+            border-radius: 10px; margin-bottom: 0.5rem; transition: all 0.2s;
+        }
+        .offer-item:hover { border-color: #ffb300; }
+        .offer-item.applied { border-color: #27ae60; background: #e8f5e9; }
+        .offer-item .offer-icon { font-size: 1.3rem; flex-shrink: 0; }
+        .offer-item .offer-info { flex: 1; min-width: 0; }
+        .offer-item .offer-label { font-weight: 700; font-size: 0.85rem; color: #333; }
+        .offer-item .offer-desc { font-size: 0.73rem; color: #888; margin-top: 0.1rem; }
+        .offer-item .offer-min { font-size: 0.7rem; color: #bbb; }
+        .offer-action-btn {
+            font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.9rem;
+            border-radius: 6px; border: none; cursor: pointer;
+            font-family: 'Nunito', sans-serif; transition: all 0.15s; white-space: nowrap;
+        }
+        .btn-apply-offer { background: #e65100; color: #fff; }
+        .btn-apply-offer:hover { background: #bf360c; }
+        .btn-applied-offer { background: #27ae60; color: #fff; cursor: default; }
+        .btn-remove-offer { background: #fce4ec; color: #c62828; font-size: 0.72rem; padding: 0.25rem 0.6rem; }
+        .btn-remove-offer:hover { background: #f8bbd0; }
+        .total-row.discount { color: #27ae60; }
+        .total-row.discount span:last-child { font-weight: 700; }
+        .no-offers-msg { font-size: 0.82rem; color: #ccc; text-align: center; padding: 0.5rem; }
+        .offer-applied-banner {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 8px;
+            padding: 0.5rem 0.8rem; display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.82rem; font-weight: 700; color: #2e7d32; margin-bottom: 0.5rem;
+        }
+        .offer-applied-banner button { margin-left: auto; }
+        .confirm-discount { color: #27ae60 !important; }
+
         @media (max-width: 768px) {
             .main-container { grid-template-columns: 1fr; padding: 0 1rem 2rem; margin: 1rem auto; }
             .cart-section { order: -1; }
@@ -335,6 +375,10 @@
                     <span>Subtotal</span>
                     <span id="subtotal">₹0</span>
                 </div>
+                <div class="total-row discount" id="discount-row" style="display:none;">
+                    <span id="discount-label">Discount</span>
+                    <span id="discount-amount">-₹0</span>
+                </div>
                 <div class="total-row grand-total">
                     <span>Total</span>
                     <span id="grand-total">₹0</span>
@@ -342,6 +386,11 @@
                 <button class="clear-cart-btn" onclick="clearCart()">
                     <i class="fas fa-trash-alt"></i> Clear Cart
                 </button>
+            </div>
+
+            <div class="offers-section" id="offers-section" style="display:none;">
+                <div class="offers-title"><i class="fas fa-tags"></i> Available Offers</div>
+                <div id="offers-container"></div>
             </div>
 
             <div class="add-more-section">
@@ -487,6 +536,14 @@
             <div class="confirm-items-title">Order Items</div>
             <div id="confirm-items"></div>
 
+            <div class="confirm-detail-row" id="confirm-subtotal-row" style="display:none;">
+                <span class="label">Subtotal</span>
+                <span class="value" id="confirm-subtotal">₹0</span>
+            </div>
+            <div class="confirm-detail-row" id="confirm-discount-row" style="display:none;">
+                <span class="label">Discount</span>
+                <span class="value confirm-discount" id="confirm-discount">-₹0</span>
+            </div>
             <div class="confirm-total">
                 <span>Total Paid</span>
                 <span class="amount" id="confirm-total">₹0</span>
@@ -536,8 +593,112 @@
         'Tasty Cupcakes': '#f3e5f5', 'Cold Drinks': '#e8f5e9', 'Cold Ice-Cream': '#e0f7fa'
     };
 
+    var appliedOffer = JSON.parse(sessionStorage.getItem('appliedOffer') || 'null');
+    var activeOffers = [];
+
     function getCart() { return JSON.parse(localStorage.getItem('foodCart') || '[]'); }
     function saveCart(cart) { localStorage.setItem('foodCart', JSON.stringify(cart)); }
+
+    function loadActiveOffers() {
+        db.collection('offers').where('active', '==', true).onSnapshot(function(snapshot) {
+            activeOffers = [];
+            snapshot.forEach(function(doc) {
+                var o = doc.data();
+                o.id = doc.id;
+                activeOffers.push(o);
+            });
+            renderOffers();
+        });
+    }
+
+    function renderOffers() {
+        var section = document.getElementById('offers-section');
+        var container = document.getElementById('offers-container');
+        var cart = getCart();
+        var subtotal = 0;
+        for (var i = 0; i < cart.length; i++) subtotal += cart[i].price * cart[i].qty;
+
+        if (activeOffers.length === 0 || cart.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = 'block';
+        var html = '';
+
+        if (appliedOffer) {
+            html += '<div class="offer-applied-banner">' +
+                '<i class="fas fa-check-circle"></i> "' + appliedOffer.name + '" applied!' +
+                '<button class="btn-remove-offer offer-action-btn" onclick="removeAppliedOffer()"><i class="fas fa-times"></i> Remove</button>' +
+                '</div>';
+        }
+
+        for (var j = 0; j < activeOffers.length; j++) {
+            var o = activeOffers[j];
+            var isApplied = appliedOffer && appliedOffer.id === o.id;
+            var meetsMin = subtotal >= (o.minOrder || 0);
+            var discountDisplay = o.discountType === 'percentage' ? o.discountValue + '% OFF' : '₹' + o.discountValue + ' OFF';
+
+            var actionBtn = '';
+            if (isApplied) {
+                actionBtn = '<button class="offer-action-btn btn-applied-offer"><i class="fas fa-check"></i> Applied</button>';
+            } else if (meetsMin) {
+                actionBtn = '<button class="offer-action-btn btn-apply-offer" onclick="applyOffer(' + j + ')">Apply</button>';
+            } else {
+                actionBtn = '<span style="font-size:0.72rem;color:#c62828;">Min ₹' + o.minOrder + '</span>';
+            }
+
+            html +=
+                '<div class="offer-item ' + (isApplied ? 'applied' : '') + '">' +
+                '<span class="offer-icon">🏷️</span>' +
+                '<div class="offer-info">' +
+                '<div class="offer-label">' + o.name + ' — ' + discountDisplay + '</div>' +
+                '<div class="offer-desc">' + (o.description || '') + '</div>' +
+                (o.minOrder > 0 ? '<div class="offer-min">Min order: ₹' + o.minOrder + '</div>' : '') +
+                '</div>' +
+                actionBtn +
+                '</div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    function applyOffer(index) {
+        var o = activeOffers[index];
+        var cart = getCart();
+        var subtotal = 0;
+        for (var i = 0; i < cart.length; i++) subtotal += cart[i].price * cart[i].qty;
+
+        if (o.minOrder && subtotal < o.minOrder) {
+            showToast('Min order ₹' + o.minOrder + ' required');
+            return;
+        }
+
+        appliedOffer = { id: o.id, name: o.name, discountType: o.discountType, discountValue: o.discountValue, minOrder: o.minOrder || 0 };
+        sessionStorage.setItem('appliedOffer', JSON.stringify(appliedOffer));
+        renderCart();
+        showToast('"' + o.name + '" applied!');
+    }
+
+    function removeAppliedOffer() {
+        appliedOffer = null;
+        sessionStorage.removeItem('appliedOffer');
+        renderCart();
+        showToast('Offer removed');
+    }
+
+    function calculateDiscount(subtotal) {
+        if (!appliedOffer) return 0;
+        if (appliedOffer.minOrder && subtotal < appliedOffer.minOrder) {
+            appliedOffer = null;
+            sessionStorage.removeItem('appliedOffer');
+            return 0;
+        }
+        if (appliedOffer.discountType === 'percentage') {
+            return Math.round(subtotal * appliedOffer.discountValue / 100);
+        }
+        return Math.min(appliedOffer.discountValue, subtotal);
+    }
 
     function renderCart() {
         var cart = getCart();
@@ -591,8 +752,23 @@
         totalSection.style.display = 'block';
         document.getElementById('item-count').textContent = totalQty + ' item' + (totalQty > 1 ? 's' : '');
         document.getElementById('subtotal').textContent = '₹' + totalPrice;
-        document.getElementById('grand-total').textContent = '₹' + totalPrice;
-        document.getElementById('pay-amount').textContent = totalPrice;
+
+        var discount = calculateDiscount(totalPrice);
+        var finalTotal = totalPrice - discount;
+        var discountRow = document.getElementById('discount-row');
+
+        if (discount > 0) {
+            discountRow.style.display = 'flex';
+            document.getElementById('discount-label').textContent =
+                'Discount (' + (appliedOffer.discountType === 'percentage' ? appliedOffer.discountValue + '%' : '₹' + appliedOffer.discountValue) + ')';
+            document.getElementById('discount-amount').textContent = '-₹' + discount;
+        } else {
+            discountRow.style.display = 'none';
+        }
+
+        document.getElementById('grand-total').textContent = '₹' + finalTotal;
+        document.getElementById('pay-amount').textContent = finalTotal;
+        renderOffers();
     }
 
     function changeQty(index, delta) {
@@ -653,14 +829,14 @@
         var dateStr = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) +
                       ' at ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-        var totalPrice = 0;
+        var subtotalPrice = 0;
         var itemsHtml = '';
         var itemsText = '';
 
         for (var i = 0; i < cart.length; i++) {
             var item = cart[i];
             var subtotal = item.price * item.qty;
-            totalPrice += subtotal;
+            subtotalPrice += subtotal;
             var emoji = emojiMap[item.name] || '🍴';
 
             itemsHtml +=
@@ -674,12 +850,26 @@
             itemsText += item.name + ' x' + item.qty + ' = ₹' + subtotal + '\n';
         }
 
+        var discount = calculateDiscount(subtotalPrice);
+        var totalPrice = subtotalPrice - discount;
+
         document.getElementById('confirm-order-id').textContent = orderId;
         document.getElementById('confirm-name').textContent = custName;
         document.getElementById('confirm-email').textContent = custEmail;
         document.getElementById('confirm-phone').textContent = custPhone;
         document.getElementById('confirm-date').textContent = dateStr;
         document.getElementById('confirm-items').innerHTML = itemsHtml;
+
+        if (discount > 0) {
+            document.getElementById('confirm-subtotal-row').style.display = 'flex';
+            document.getElementById('confirm-subtotal').textContent = '₹' + subtotalPrice;
+            document.getElementById('confirm-discount-row').style.display = 'flex';
+            document.getElementById('confirm-discount').textContent = '-₹' + discount + ' (' + appliedOffer.name + ')';
+        } else {
+            document.getElementById('confirm-subtotal-row').style.display = 'none';
+            document.getElementById('confirm-discount-row').style.display = 'none';
+        }
+
         document.getElementById('confirm-total').textContent = '₹' + totalPrice;
 
         document.getElementById('order-overlay').classList.add('active');
@@ -696,6 +886,9 @@
             items: cart.map(function(item) {
                 return { name: item.name, price: item.price, qty: item.qty, subtotal: item.price * item.qty };
             }),
+            subtotalAmount: subtotalPrice,
+            discount: discount,
+            offerApplied: appliedOffer ? { name: appliedOffer.name, type: appliedOffer.discountType, value: appliedOffer.discountValue } : null,
             totalAmount: totalPrice,
             orderDate: dateStr,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -704,6 +897,12 @@
 
         db.collection('orders').doc(orderId).set(orderData).then(function() {
             var emailSubject = 'Order Confirmation - ' + orderId + ' | Food Order';
+            var discountText = '';
+            if (discount > 0) {
+                discountText = '\nSUBTOTAL: Rs.' + subtotalPrice + '\n' +
+                    'DISCOUNT: -Rs.' + discount + ' (' + appliedOffer.name + ')\n';
+            }
+
             var emailBody =
                 'Hi ' + custName + '!\n\n' +
                 'Your order has been confirmed.\n\n' +
@@ -713,7 +912,8 @@
                 'Phone: ' + custPhone + '\n' +
                 '================================\n\n' +
                 'ORDER ITEMS:\n' +
-                itemsText + '\n' +
+                itemsText +
+                discountText + '\n' +
                 '================================\n' +
                 'TOTAL: Rs.' + totalPrice + '\n' +
                 '================================\n\n' +
@@ -736,6 +936,8 @@
         });
 
         localStorage.removeItem('foodCart');
+        appliedOffer = null;
+        sessionStorage.removeItem('appliedOffer');
     }
 
     function goHome() {
@@ -751,6 +953,7 @@
     }
 
     renderCart();
+    loadActiveOffers();
 </script>
 </body>
 </html>

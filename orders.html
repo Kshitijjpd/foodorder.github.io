@@ -958,6 +958,7 @@
                     '<div class="info-item"><div class="info-label">Phone</div><div class="info-value">' + customerPhone + '</div></div>' +
                     '</div>' +
                     itemsHtml +
+                    (order.discount > 0 ? '<div class="order-items-row" style="color:#27ae60;font-weight:700;"><span>🏷️</span><span class="oi-name">' + (order.offerApplied ? order.offerApplied.name : 'Discount') + '</span><span class="oi-price" style="color:#27ae60;">-₹' + order.discount + '</span></div>' : '') +
                     '</div>' +
                     '<div class="order-card-footer">' +
                     '<div><span class="order-total-label">Total</span> <span class="order-total-amount">₹' + (order.totalAmount || 0) + '</span></div>' +

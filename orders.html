@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Nunito', sans-serif; background: #f5f5f5; min-height: 100vh; color: #333; }
@@ -360,7 +359,6 @@
         appId: "1:996591308228:web:461c3007a6b65955452891"
     });
     var db = firebase.firestore();
-    var auth = firebase.auth();
 
     var isAdmin = false;
     var currentAdminEmail = null;
@@ -392,6 +390,7 @@
             if (!doc.exists) {
                 db.collection('admins').doc('kkumar2k100@gmail.com').set({
                     email: 'kkumar2k100@gmail.com',
+                    password: 'Kshaditij@123',
                     role: 'super_admin',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -430,59 +429,35 @@
 
         errEl.classList.remove('show');
 
-        auth.signInWithEmailAndPassword(email, pass).then(function(result) {
-            return db.collection('admins').doc(email).get();
-        }).then(function(doc) {
+        db.collection('admins').doc(email).get().then(function(doc) {
             if (!doc.exists) {
-                errEl.textContent = 'You are not authorized as admin';
+                errEl.textContent = 'Admin account not found';
                 errEl.classList.add('show');
-                auth.signOut();
+                return;
+            }
+            var adminData = doc.data();
+            if (adminData.password !== pass) {
+                errEl.textContent = 'Wrong password. Try again.';
+                errEl.classList.add('show');
                 return;
             }
             isAdmin = true;
             currentAdminEmail = email;
-            isSuperAdmin = doc.data().role === 'super_admin';
+            isSuperAdmin = adminData.role === 'super_admin';
+            sessionStorage.setItem('adminEmail', email);
             closeLoginModal();
             updateAdminUI();
             loadOrders();
             if (isSuperAdmin) loadAdmins();
             showToast('Welcome, Admin!');
-        }).catch(function(error) {
-            if (error.code === 'auth/user-not-found') {
-                db.collection('admins').doc(email).get().then(function(doc) {
-                    if (doc.exists) {
-                        auth.createUserWithEmailAndPassword(email, pass).then(function() {
-                            return db.collection('admins').doc(email).get();
-                        }).then(function(doc) {
-                            isAdmin = true;
-                            currentAdminEmail = email;
-                            isSuperAdmin = doc.data().role === 'super_admin';
-                            closeLoginModal();
-                            updateAdminUI();
-                            loadOrders();
-                            if (isSuperAdmin) loadAdmins();
-                            showToast('Account created & logged in!');
-                        });
-                    } else {
-                        errEl.textContent = 'You are not authorized as admin';
-                        errEl.classList.add('show');
-                    }
-                });
-            } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                errEl.textContent = 'Wrong password. Try again.';
-                errEl.classList.add('show');
-            } else {
-                errEl.textContent = error.message;
-                errEl.classList.add('show');
-            }
         });
     }
 
     function adminLogout() {
-        auth.signOut();
         isAdmin = false;
         currentAdminEmail = null;
         isSuperAdmin = false;
+        sessionStorage.removeItem('adminEmail');
         updateAdminUI();
         loadOrders();
         showToast('Logged out');
@@ -553,28 +528,18 @@
             return;
         }
 
-        var currentUser = auth.currentUser;
-
         db.collection('admins').doc(email).set({
             email: email,
+            password: pass,
             role: 'admin',
             createdBy: currentAdminEmail,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(function() {
-            sucEl.textContent = 'Admin added: ' + email + '. They can now login with the email & password.';
+            sucEl.textContent = 'Admin added: ' + email;
             sucEl.classList.add('show');
             showToast('Admin added: ' + email);
-
-            return auth.createUserWithEmailAndPassword(email, pass);
-        }).then(function() {
-            return auth.signInWithEmailAndPassword(currentAdminEmail, prompt('Re-enter YOUR password to stay logged in:'));
-        }).catch(function(error) {
-            if (error.code === 'auth/email-already-in-use') {
-                sucEl.textContent = 'Admin role granted to ' + email;
-                sucEl.classList.add('show');
-            } else if (error.message) {
-                console.log('Note:', error.message);
-            }
+            document.getElementById('add-email').value = '';
+            document.getElementById('add-pass').value = '';
         });
     }
 
@@ -694,6 +659,22 @@
         });
     }
 
+    function checkSavedSession() {
+        var savedEmail = sessionStorage.getItem('adminEmail');
+        if (savedEmail) {
+            db.collection('admins').doc(savedEmail).get().then(function(doc) {
+                if (doc.exists) {
+                    isAdmin = true;
+                    currentAdminEmail = savedEmail;
+                    isSuperAdmin = doc.data().role === 'super_admin';
+                    updateAdminUI();
+                    loadOrders();
+                    if (isSuperAdmin) loadAdmins();
+                }
+            });
+        }
+    }
+
     function showToast(msg) {
         var toast = document.getElementById('toast');
         toast.textContent = msg;
@@ -701,6 +682,7 @@
         setTimeout(function() { toast.classList.remove('show'); }, 2000);
     }
 
+    checkSavedSession();
     loadOrders();
 </script>
 </body>

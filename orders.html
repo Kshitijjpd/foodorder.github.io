@@ -1,24 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>All Orders - Admin</title>
+    <title>Orders</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Nunito', sans-serif; background: #f5f5f5; min-height: 100vh; color: #333; }
 
         .page-header {
             background: linear-gradient(135deg, #2c3e50, #3498db);
-            color: #fff; padding: 1.5rem 2rem;
+            color: #fff; padding: 1.2rem 2rem;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .page-header h1 { font-size: 1.6rem; font-weight: 800; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 800; }
         .page-header a { color: #fff; text-decoration: none; font-weight: 600; opacity: 0.9; }
         .page-header a:hover { opacity: 1; }
+
+        .admin-toggle-btn {
+            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .admin-toggle-btn:hover { background: rgba(255,255,255,0.25); }
+        .admin-toggle-btn.logged-in { background: #27ae60; border-color: #27ae60; }
 
         .stats-row {
             max-width: 1200px; margin: 1.5rem auto; padding: 0 1.5rem;
@@ -28,21 +38,19 @@
             background: #fff; border-radius: 12px; padding: 1.2rem 1.5rem;
             box-shadow: 0 2px 12px rgba(0,0,0,0.05);
         }
-        .stat-card .stat-label { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-card .stat-value { font-size: 1.8rem; font-weight: 800; color: #222; margin-top: 0.3rem; }
+        .stat-card .stat-label { font-size: 0.78rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 800; margin-top: 0.2rem; }
         .stat-card .stat-value.revenue { color: #27ae60; }
         .stat-card .stat-value.orders { color: #3498db; }
         .stat-card .stat-value.items { color: #ff3838; }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 3rem; }
-
         .orders-list { display: flex; flex-direction: column; gap: 1rem; }
 
         .order-card {
             background: #fff; border-radius: 14px; overflow: hidden;
             box-shadow: 0 2px 12px rgba(0,0,0,0.05);
         }
-
         .order-card-header {
             padding: 1rem 1.5rem; display: flex; align-items: center;
             justify-content: space-between; border-bottom: 1px solid #f0f0f0;
@@ -58,14 +66,13 @@
             border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
         }
         .order-status.confirmed { background: #e8f5e9; color: #2e7d32; }
-        .order-status.pending { background: #fff8e1; color: #f57f17; }
+        .order-status.cancelled { background: #fce4ec; color: #c62828; }
 
         .order-card-body { padding: 1rem 1.5rem; }
 
         .customer-info {
             display: flex; gap: 2rem; flex-wrap: wrap;
-            padding-bottom: 0.75rem; border-bottom: 1px solid #f5f5f5;
-            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem; border-bottom: 1px solid #f5f5f5; margin-bottom: 0.75rem;
         }
         .customer-info .info-item { font-size: 0.85rem; }
         .customer-info .info-label { color: #999; font-size: 0.75rem; }
@@ -86,15 +93,157 @@
         .order-total-label { font-size: 0.85rem; color: #999; }
         .order-total-amount { font-size: 1.2rem; font-weight: 800; color: #ff3838; }
 
+        .admin-actions { display: flex; gap: 0.5rem; }
+        .admin-actions button {
+            padding: 0.4rem 1rem; border-radius: 6px; border: none; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.78rem;
+            transition: all 0.15s;
+        }
+        .btn-cancel-order { background: #fff3e0; color: #f57f17; }
+        .btn-cancel-order:hover { background: #ffe0b2; }
+        .btn-delete-order { background: #fce4ec; color: #c62828; }
+        .btn-delete-order:hover { background: #f8bbd0; }
+        .btn-restore-order { background: #e8f5e9; color: #2e7d32; }
+        .btn-restore-order:hover { background: #c8e6c9; }
+
         .loading { text-align: center; padding: 4rem; color: #aaa; font-size: 1.1rem; }
         .loading i { font-size: 2rem; margin-bottom: 1rem; display: block; }
-
         .no-orders { text-align: center; padding: 4rem; color: #aaa; }
         .no-orders i { font-size: 3rem; margin-bottom: 1rem; display: block; color: #ddd; }
+
+        /* Admin Login Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 10000;
+            justify-content: center; align-items: center; padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
+            animation: slideUp 0.3s ease; overflow: hidden;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.5rem; border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { font-size: 1.1rem; font-weight: 800; color: #222; }
+        .modal-close {
+            background: none; border: none; font-size: 1.2rem; color: #999;
+            cursor: pointer; padding: 0.3rem;
+        }
+        .modal-close:hover { color: #333; }
+
+        .modal-body { padding: 1.5rem; }
+
+        .input-group { margin-bottom: 1rem; }
+        .input-group label {
+            display: block; font-size: 0.8rem; font-weight: 700; color: #555;
+            margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .input-group input {
+            width: 100%; padding: 0.7rem 0.9rem; border: 2px solid #eee;
+            border-radius: 10px; font-size: 0.9rem; font-family: 'Nunito', sans-serif;
+            outline: none; color: #333; transition: border-color 0.2s;
+        }
+        .input-group input:focus { border-color: #3498db; }
+
+        .modal-btn {
+            width: 100%; padding: 0.8rem; border: none; border-radius: 10px;
+            font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.15s; color: #fff;
+        }
+        .modal-btn.login { background: linear-gradient(135deg, #2c3e50, #3498db); }
+        .modal-btn.login:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(52,152,219,0.3); }
+        .modal-btn.danger { background: #e74c3c; margin-top: 0.5rem; }
+        .modal-btn.success { background: #27ae60; margin-top: 0.5rem; }
+        .modal-btn.success:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(39,174,96,0.3); }
+
+        .modal-error {
+            background: #fce4ec; color: #c62828; padding: 0.6rem; border-radius: 8px;
+            font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; text-align: center;
+            display: none;
+        }
+        .modal-error.show { display: block; }
+
+        .modal-success {
+            background: #e8f5e9; color: #2e7d32; padding: 0.6rem; border-radius: 8px;
+            font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; text-align: center;
+            display: none;
+        }
+        .modal-success.show { display: block; }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none; max-width: 1200px; margin: 0 auto 1.5rem;
+            padding: 0 1.5rem;
+        }
+        .admin-panel.active { display: block; }
+
+        .admin-panel-card {
+            background: #fff; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .admin-panel-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .admin-panel-header h3 { font-size: 1rem; font-weight: 700; color: #222; }
+        .admin-panel-body { padding: 1.25rem 1.5rem; }
+
+        .admin-list-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.6rem 0; border-bottom: 1px solid #f5f5f5; font-size: 0.88rem;
+        }
+        .admin-list-item:last-child { border-bottom: none; }
+        .admin-email { font-weight: 600; color: #333; }
+        .admin-role {
+            font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+            border-radius: 4px; text-transform: uppercase;
+        }
+        .admin-role.super { background: #fff3e0; color: #e65100; }
+        .admin-role.admin { background: #e3f2fd; color: #1565c0; }
+
+        .btn-remove-admin {
+            background: #fce4ec; color: #c62828; border: none; padding: 0.3rem 0.8rem;
+            border-radius: 6px; cursor: pointer; font-family: 'Nunito', sans-serif;
+            font-weight: 700; font-size: 0.75rem; transition: all 0.15s;
+        }
+        .btn-remove-admin:hover { background: #f8bbd0; }
+
+        .add-admin-row {
+            display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem;
+            border-top: 2px dashed #eee;
+        }
+        .add-admin-row input {
+            flex: 1; padding: 0.6rem 0.8rem; border: 2px solid #eee; border-radius: 8px;
+            font-family: 'Nunito', sans-serif; font-size: 0.85rem; outline: none;
+        }
+        .add-admin-row input:focus { border-color: #3498db; }
+        .btn-add-admin {
+            background: #27ae60; color: #fff; border: none; padding: 0.6rem 1.2rem;
+            border-radius: 8px; cursor: pointer; font-family: 'Nunito', sans-serif;
+            font-weight: 700; font-size: 0.85rem; white-space: nowrap; transition: all 0.15s;
+        }
+        .btn-add-admin:hover { background: #219a52; }
+
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem; background: #333; color: #fff;
+            padding: 0.8rem 1.5rem; border-radius: 10px; font-size: 0.85rem; z-index: 99999;
+            opacity: 0; transform: translateY(20px); transition: all .3s;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
 
         @media (max-width: 768px) {
             .stats-row { grid-template-columns: 1fr; }
             .customer-info { gap: 1rem; }
+            .add-admin-row { flex-direction: column; }
+            .order-card-header { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -103,7 +252,9 @@
 <div class="page-header">
     <a href="index.html"><i class="fas fa-arrow-left"></i> Back</a>
     <h1><i class="fas fa-clipboard-list"></i> All Orders</h1>
-    <span id="live-badge" style="font-size:0.8rem; opacity:0.7;"><i class="fas fa-circle" style="color:#2ecc71;font-size:0.6rem;"></i> Live</span>
+    <button class="admin-toggle-btn" id="admin-btn" onclick="openLoginModal()">
+        <i class="fas fa-user-shield"></i> Admin
+    </button>
 </div>
 
 <div class="stats-row">
@@ -121,14 +272,83 @@
     </div>
 </div>
 
-<div class="container">
-    <div id="orders-container">
-        <div class="loading">
-            <i class="fas fa-spinner fa-spin"></i>
-            Loading orders...
+<!-- Admin Panel (visible only when logged in) -->
+<div class="admin-panel" id="admin-panel">
+    <div class="admin-panel-card">
+        <div class="admin-panel-header">
+            <h3><i class="fas fa-users-cog"></i> Admin Management</h3>
+        </div>
+        <div class="admin-panel-body">
+            <div id="admin-list"></div>
+            <div class="add-admin-row">
+                <input type="email" id="new-admin-email" placeholder="New admin email">
+                <input type="password" id="new-admin-pass" placeholder="Password">
+                <button class="btn-add-admin" onclick="addAdmin()">
+                    <i class="fas fa-plus"></i> Add Admin
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<div class="container">
+    <div id="orders-container">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading orders...
+        </div>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="login-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+            <button class="modal-close" onclick="closeLoginModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-error" id="login-error"></div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="admin@email.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="login-pass" placeholder="Password">
+            </div>
+            <button class="modal-btn login" onclick="adminLogin()">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Admin Modal -->
+<div class="modal-overlay" id="add-admin-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-user-plus"></i> Add New Admin</h2>
+            <button class="modal-close" onclick="closeAddAdminModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-error" id="add-error"></div>
+            <div class="modal-success" id="add-success"></div>
+            <div class="input-group">
+                <label>Admin Email</label>
+                <input type="email" id="add-email" placeholder="newadmin@email.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="add-pass" placeholder="Set a password">
+            </div>
+            <button class="modal-btn success" onclick="createNewAdmin()">
+                <i class="fas fa-user-plus"></i> Create Admin Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
     firebase.initializeApp({
@@ -140,6 +360,11 @@
         appId: "1:996591308228:web:461c3007a6b65955452891"
     });
     var db = firebase.firestore();
+    var auth = firebase.auth();
+
+    var isAdmin = false;
+    var currentAdminEmail = null;
+    var isSuperAdmin = false;
 
     var emojiMap = {
         'Samosa': '🥟', 'Papri Chaat': '🍽️', 'Chaat': '🍛',
@@ -148,73 +373,335 @@
         'Tasty Cupcakes': '🧁', 'Cold Drinks': '🥤', 'Cold Ice-Cream': '🍦'
     };
 
-    db.collection('orders').orderBy('timestamp', 'desc').onSnapshot(function(snapshot) {
-        var container = document.getElementById('orders-container');
-        var totalOrders = 0, totalRevenue = 0, totalItems = 0;
+    function maskEmail(email) {
+        if (!email) return '-';
+        var parts = email.split('@');
+        if (parts[0].length <= 3) return parts[0][0] + '...@' + parts[1];
+        return parts[0].substring(0, 3) + '...@' + parts[1];
+    }
 
-        if (snapshot.empty) {
-            container.innerHTML =
-                '<div class="no-orders">' +
-                '<i class="fas fa-shopping-basket"></i>' +
-                '<p>No orders yet</p>' +
-                '</div>';
-            document.getElementById('stat-orders').textContent = '0';
-            document.getElementById('stat-revenue').textContent = '₹0';
-            document.getElementById('stat-items').textContent = '0';
+    function maskPhone(phone) {
+        if (!phone) return '-';
+        phone = String(phone);
+        if (phone.length <= 5) return phone;
+        return phone.substring(0, 5) + 'xxxxx';
+    }
+
+    function seedSuperAdmin() {
+        db.collection('admins').doc('kkumar2k100@gmail.com').get().then(function(doc) {
+            if (!doc.exists) {
+                db.collection('admins').doc('kkumar2k100@gmail.com').set({
+                    email: 'kkumar2k100@gmail.com',
+                    role: 'super_admin',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        });
+    }
+    seedSuperAdmin();
+
+    function openLoginModal() {
+        if (isAdmin) {
+            adminLogout();
+            return;
+        }
+        document.getElementById('login-modal').classList.add('active');
+        document.getElementById('login-error').classList.remove('show');
+    }
+
+    function closeLoginModal() {
+        document.getElementById('login-modal').classList.remove('active');
+    }
+
+    function closeAddAdminModal() {
+        document.getElementById('add-admin-modal').classList.remove('active');
+    }
+
+    function adminLogin() {
+        var email = document.getElementById('login-email').value.trim();
+        var pass = document.getElementById('login-pass').value;
+        var errEl = document.getElementById('login-error');
+
+        if (!email || !pass) {
+            errEl.textContent = 'Please enter email and password';
+            errEl.classList.add('show');
             return;
         }
 
-        var html = '<div class="orders-list">';
+        errEl.classList.remove('show');
 
-        snapshot.forEach(function(doc) {
-            var order = doc.data();
-            totalOrders++;
-            totalRevenue += order.totalAmount || 0;
-
-            var itemsHtml = '';
-            if (order.items) {
-                order.items.forEach(function(item) {
-                    totalItems += item.qty || 0;
-                    var emoji = emojiMap[item.name] || '🍴';
-                    itemsHtml +=
-                        '<div class="order-items-row">' +
-                        '<span>' + emoji + '</span>' +
-                        '<span class="oi-name">' + item.name + '</span>' +
-                        '<span class="oi-qty">x' + item.qty + '</span>' +
-                        '<span class="oi-price">₹' + item.subtotal + '</span>' +
-                        '</div>';
+        auth.signInWithEmailAndPassword(email, pass).then(function(result) {
+            return db.collection('admins').doc(email).get();
+        }).then(function(doc) {
+            if (!doc.exists) {
+                errEl.textContent = 'You are not authorized as admin';
+                errEl.classList.add('show');
+                auth.signOut();
+                return;
+            }
+            isAdmin = true;
+            currentAdminEmail = email;
+            isSuperAdmin = doc.data().role === 'super_admin';
+            closeLoginModal();
+            updateAdminUI();
+            loadOrders();
+            if (isSuperAdmin) loadAdmins();
+            showToast('Welcome, Admin!');
+        }).catch(function(error) {
+            if (error.code === 'auth/user-not-found') {
+                db.collection('admins').doc(email).get().then(function(doc) {
+                    if (doc.exists) {
+                        auth.createUserWithEmailAndPassword(email, pass).then(function() {
+                            return db.collection('admins').doc(email).get();
+                        }).then(function(doc) {
+                            isAdmin = true;
+                            currentAdminEmail = email;
+                            isSuperAdmin = doc.data().role === 'super_admin';
+                            closeLoginModal();
+                            updateAdminUI();
+                            loadOrders();
+                            if (isSuperAdmin) loadAdmins();
+                            showToast('Account created & logged in!');
+                        });
+                    } else {
+                        errEl.textContent = 'You are not authorized as admin';
+                        errEl.classList.add('show');
+                    }
                 });
+            } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                errEl.textContent = 'Wrong password. Try again.';
+                errEl.classList.add('show');
+            } else {
+                errEl.textContent = error.message;
+                errEl.classList.add('show');
+            }
+        });
+    }
+
+    function adminLogout() {
+        auth.signOut();
+        isAdmin = false;
+        currentAdminEmail = null;
+        isSuperAdmin = false;
+        updateAdminUI();
+        loadOrders();
+        showToast('Logged out');
+    }
+
+    function updateAdminUI() {
+        var btn = document.getElementById('admin-btn');
+        var panel = document.getElementById('admin-panel');
+        if (isAdmin) {
+            btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+            btn.classList.add('logged-in');
+            if (isSuperAdmin) panel.classList.add('active');
+        } else {
+            btn.innerHTML = '<i class="fas fa-user-shield"></i> Admin';
+            btn.classList.remove('logged-in');
+            panel.classList.remove('active');
+        }
+    }
+
+    function loadAdmins() {
+        db.collection('admins').onSnapshot(function(snapshot) {
+            var html = '';
+            snapshot.forEach(function(doc) {
+                var admin = doc.data();
+                var roleClass = admin.role === 'super_admin' ? 'super' : 'admin';
+                var roleLabel = admin.role === 'super_admin' ? 'Super Admin' : 'Admin';
+                var removeBtn = '';
+                if (isSuperAdmin && admin.email !== currentAdminEmail) {
+                    removeBtn = '<button class="btn-remove-admin" onclick="removeAdmin(\'' + admin.email + '\')"><i class="fas fa-trash"></i> Remove</button>';
+                }
+                html +=
+                    '<div class="admin-list-item">' +
+                    '<span class="admin-email">' + admin.email + '</span>' +
+                    '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+                    '<span class="admin-role ' + roleClass + '">' + roleLabel + '</span>' +
+                    removeBtn +
+                    '</div></div>';
+            });
+            document.getElementById('admin-list').innerHTML = html;
+        });
+    }
+
+    function addAdmin() {
+        document.getElementById('add-admin-modal').classList.add('active');
+        document.getElementById('add-error').classList.remove('show');
+        document.getElementById('add-success').classList.remove('show');
+        document.getElementById('add-email').value = '';
+        document.getElementById('add-pass').value = '';
+    }
+
+    function createNewAdmin() {
+        var email = document.getElementById('add-email').value.trim();
+        var pass = document.getElementById('add-pass').value;
+        var errEl = document.getElementById('add-error');
+        var sucEl = document.getElementById('add-success');
+
+        errEl.classList.remove('show');
+        sucEl.classList.remove('show');
+
+        if (!email || !pass) {
+            errEl.textContent = 'Enter email and password';
+            errEl.classList.add('show');
+            return;
+        }
+        if (pass.length < 6) {
+            errEl.textContent = 'Password must be at least 6 characters';
+            errEl.classList.add('show');
+            return;
+        }
+
+        var currentUser = auth.currentUser;
+
+        db.collection('admins').doc(email).set({
+            email: email,
+            role: 'admin',
+            createdBy: currentAdminEmail,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function() {
+            sucEl.textContent = 'Admin added: ' + email + '. They can now login with the email & password.';
+            sucEl.classList.add('show');
+            showToast('Admin added: ' + email);
+
+            return auth.createUserWithEmailAndPassword(email, pass);
+        }).then(function() {
+            return auth.signInWithEmailAndPassword(currentAdminEmail, prompt('Re-enter YOUR password to stay logged in:'));
+        }).catch(function(error) {
+            if (error.code === 'auth/email-already-in-use') {
+                sucEl.textContent = 'Admin role granted to ' + email;
+                sucEl.classList.add('show');
+            } else if (error.message) {
+                console.log('Note:', error.message);
+            }
+        });
+    }
+
+    function removeAdmin(email) {
+        if (!confirm('Remove ' + email + ' from admins?')) return;
+        db.collection('admins').doc(email).delete().then(function() {
+            showToast(email + ' removed from admins');
+        });
+    }
+
+    function cancelOrder(orderId) {
+        if (!confirm('Cancel order ' + orderId + '?')) return;
+        db.collection('orders').doc(orderId).update({ status: 'cancelled' }).then(function() {
+            showToast('Order ' + orderId + ' cancelled');
+        });
+    }
+
+    function restoreOrder(orderId) {
+        db.collection('orders').doc(orderId).update({ status: 'confirmed' }).then(function() {
+            showToast('Order ' + orderId + ' restored');
+        });
+    }
+
+    function deleteOrder(orderId) {
+        if (!confirm('Permanently delete order ' + orderId + '? This cannot be undone.')) return;
+        db.collection('orders').doc(orderId).delete().then(function() {
+            showToast('Order ' + orderId + ' deleted');
+        });
+    }
+
+    function loadOrders() {
+        db.collection('orders').orderBy('timestamp', 'desc').onSnapshot(function(snapshot) {
+            var container = document.getElementById('orders-container');
+            var totalOrders = 0, totalRevenue = 0, totalItems = 0;
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="no-orders"><i class="fas fa-shopping-basket"></i><p>No orders yet</p></div>';
+                document.getElementById('stat-orders').textContent = '0';
+                document.getElementById('stat-revenue').textContent = '₹0';
+                document.getElementById('stat-items').textContent = '0';
+                return;
             }
 
-            html +=
-                '<div class="order-card">' +
-                '<div class="order-card-header">' +
-                '<span class="order-id-tag">' + order.orderId + '</span>' +
-                '<span class="order-date"><i class="far fa-clock"></i> ' + (order.orderDate || '') + '</span>' +
-                '<span class="order-status ' + (order.status || 'confirmed') + '">' + (order.status || 'confirmed') + '</span>' +
-                '</div>' +
-                '<div class="order-card-body">' +
-                '<div class="customer-info">' +
-                '<div class="info-item"><div class="info-label">Customer</div><div class="info-value">' + (order.customerName || '-') + '</div></div>' +
-                '<div class="info-item"><div class="info-label">Email</div><div class="info-value">' + (order.customerEmail || '-') + '</div></div>' +
-                '<div class="info-item"><div class="info-label">Phone</div><div class="info-value">' + (order.customerPhone || '-') + '</div></div>' +
-                '</div>' +
-                itemsHtml +
-                '</div>' +
-                '<div class="order-card-footer">' +
-                '<span class="order-total-label">Total</span>' +
-                '<span class="order-total-amount">₹' + (order.totalAmount || 0) + '</span>' +
-                '</div>' +
-                '</div>';
+            var html = '<div class="orders-list">';
+
+            snapshot.forEach(function(doc) {
+                var order = doc.data();
+                totalOrders++;
+                totalRevenue += order.totalAmount || 0;
+
+                var customerName = order.customerName || '-';
+                var customerEmail = isAdmin ? (order.customerEmail || '-') : maskEmail(order.customerEmail);
+                var customerPhone = isAdmin ? (order.customerPhone || '-') : maskPhone(order.customerPhone);
+
+                var status = order.status || 'confirmed';
+                var statusClass = status === 'cancelled' ? 'cancelled' : 'confirmed';
+
+                var itemsHtml = '';
+                if (order.items) {
+                    order.items.forEach(function(item) {
+                        totalItems += item.qty || 0;
+                        var emoji = emojiMap[item.name] || '🍴';
+                        itemsHtml +=
+                            '<div class="order-items-row">' +
+                            '<span>' + emoji + '</span>' +
+                            '<span class="oi-name">' + item.name + '</span>' +
+                            '<span class="oi-qty">x' + item.qty + '</span>' +
+                            '<span class="oi-price">₹' + item.subtotal + '</span>' +
+                            '</div>';
+                    });
+                }
+
+                var adminBtns = '';
+                if (isAdmin) {
+                    if (status === 'confirmed') {
+                        adminBtns =
+                            '<div class="admin-actions">' +
+                            '<button class="btn-cancel-order" onclick="cancelOrder(\'' + order.orderId + '\')"><i class="fas fa-ban"></i> Cancel</button>' +
+                            '<button class="btn-delete-order" onclick="deleteOrder(\'' + order.orderId + '\')"><i class="fas fa-trash"></i> Delete</button>' +
+                            '</div>';
+                    } else {
+                        adminBtns =
+                            '<div class="admin-actions">' +
+                            '<button class="btn-restore-order" onclick="restoreOrder(\'' + order.orderId + '\')"><i class="fas fa-undo"></i> Restore</button>' +
+                            '<button class="btn-delete-order" onclick="deleteOrder(\'' + order.orderId + '\')"><i class="fas fa-trash"></i> Delete</button>' +
+                            '</div>';
+                    }
+                }
+
+                html +=
+                    '<div class="order-card">' +
+                    '<div class="order-card-header">' +
+                    '<span class="order-id-tag">' + order.orderId + '</span>' +
+                    '<span class="order-date"><i class="far fa-clock"></i> ' + (order.orderDate || '') + '</span>' +
+                    '<span class="order-status ' + statusClass + '">' + status + '</span>' +
+                    '</div>' +
+                    '<div class="order-card-body">' +
+                    '<div class="customer-info">' +
+                    '<div class="info-item"><div class="info-label">Customer</div><div class="info-value">' + customerName + '</div></div>' +
+                    '<div class="info-item"><div class="info-label">Email</div><div class="info-value">' + customerEmail + '</div></div>' +
+                    '<div class="info-item"><div class="info-label">Phone</div><div class="info-value">' + customerPhone + '</div></div>' +
+                    '</div>' +
+                    itemsHtml +
+                    '</div>' +
+                    '<div class="order-card-footer">' +
+                    '<div><span class="order-total-label">Total</span> <span class="order-total-amount">₹' + (order.totalAmount || 0) + '</span></div>' +
+                    adminBtns +
+                    '</div>' +
+                    '</div>';
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+            document.getElementById('stat-orders').textContent = totalOrders;
+            document.getElementById('stat-revenue').textContent = '₹' + totalRevenue;
+            document.getElementById('stat-items').textContent = totalItems;
         });
+    }
 
-        html += '</div>';
-        container.innerHTML = html;
+    function showToast(msg) {
+        var toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 2000);
+    }
 
-        document.getElementById('stat-orders').textContent = totalOrders;
-        document.getElementById('stat-revenue').textContent = '₹' + totalRevenue;
-        document.getElementById('stat-items').textContent = totalItems;
-    });
+    loadOrders();
 </script>
 </body>
 </html>

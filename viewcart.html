@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -670,37 +669,33 @@
 
         document.getElementById('order-overlay').classList.add('active');
 
-        var emailStatus = document.getElementById('email-status');
-        emailStatus.className = 'email-status sending';
-        emailStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending order summary to your email...';
-
+        var emailSubject = 'Order Confirmation - ' + orderId + ' | Food Order';
         var emailBody =
-            'Order ID: ' + orderId + '\n' +
+            'Hi ' + custName + '!\n\n' +
+            'Your order has been confirmed.\n\n' +
+            '================================\n' +
+            'ORDER ID: ' + orderId + '\n' +
             'Date: ' + dateStr + '\n' +
-            'Customer: ' + custName + '\n' +
-            'Phone: ' + custPhone + '\n\n' +
-            'Order Items:\n' +
-            '-------------------\n' +
-            itemsText +
-            '-------------------\n' +
-            'Total: ₹' + totalPrice + '\n\n' +
-            'Thank you for ordering with Food!';
+            'Phone: ' + custPhone + '\n' +
+            '================================\n\n' +
+            'ORDER ITEMS:\n' +
+            itemsText + '\n' +
+            '================================\n' +
+            'TOTAL: Rs.' + totalPrice + '\n' +
+            '================================\n\n' +
+            'Thank you for ordering with Food!\n' +
+            'Your food will be delivered soon.';
 
-        emailjs.send('service_foodorder', 'template_foodorder', {
-            to_email: custEmail,
-            to_name: custName,
-            order_id: orderId,
-            order_date: dateStr,
-            order_items: itemsText,
-            order_total: '₹' + totalPrice,
-            phone: custPhone
-        }).then(function() {
-            emailStatus.className = 'email-status sent';
-            emailStatus.innerHTML = '<i class="fas fa-check-circle"></i> Order summary sent to ' + custEmail;
-        }, function() {
-            emailStatus.className = 'email-status failed';
-            emailStatus.innerHTML = '<i class="fas fa-info-circle"></i> Could not send email. Please save your Order ID: ' + orderId;
-        });
+        var gmailUrl = 'https://mail.google.com/mail/?view=cm' +
+            '&to=' + encodeURIComponent(custEmail) +
+            '&su=' + encodeURIComponent(emailSubject) +
+            '&body=' + encodeURIComponent(emailBody);
+
+        var emailStatus = document.getElementById('email-status');
+        emailStatus.className = 'email-status sent';
+        emailStatus.innerHTML = '<i class="fas fa-check-circle"></i> Order summary ready! Gmail will open in a new tab.';
+
+        window.open(gmailUrl, '_blank');
 
         localStorage.removeItem('foodCart');
     }

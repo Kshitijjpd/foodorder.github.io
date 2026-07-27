@@ -334,12 +334,21 @@
             .main-container { grid-template-columns: 1fr; padding: 0 1rem 2rem; margin: 1rem auto; }
             .cart-section { order: -1; }
             .quick-add-grid { grid-template-columns: 1fr; }
+            .offer-item { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem; }
+            .offer-item .offer-info { min-width: 60%; }
+            .offer-applied-banner { flex-wrap: wrap; gap: 0.4rem; font-size: 0.78rem; }
         }
         @media (max-width: 480px) {
             .page-header h1 { font-size: 1.4rem; }
             .form-row { grid-template-columns: 1fr; }
             .cart-item { flex-wrap: wrap; }
             .confirm-actions { flex-direction: column; }
+            .offer-item { padding: 0.5rem; }
+            .offer-item .offer-icon { display: none; }
+            .offer-item .offer-label { font-size: 0.8rem; }
+            .offer-item .offer-desc { font-size: 0.7rem; }
+            .offer-action-btn { padding: 0.3rem 0.7rem; font-size: 0.75rem; }
+            .offers-title { font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -370,6 +379,11 @@
         <div class="card-body">
             <div id="cart-items"></div>
 
+            <div class="offers-section" id="offers-section" style="display:none;">
+                <div class="offers-title"><i class="fas fa-tags"></i> Available Offers</div>
+                <div id="offers-container"></div>
+            </div>
+
             <div class="total-section" id="total-section" style="display:none;">
                 <div class="total-row">
                     <span>Subtotal</span>
@@ -386,11 +400,6 @@
                 <button class="clear-cart-btn" onclick="clearCart()">
                     <i class="fas fa-trash-alt"></i> Clear Cart
                 </button>
-            </div>
-
-            <div class="offers-section" id="offers-section" style="display:none;">
-                <div class="offers-title"><i class="fas fa-tags"></i> Available Offers</div>
-                <div id="offers-container"></div>
             </div>
 
             <div class="add-more-section">

@@ -587,20 +587,22 @@
 
             snapshot.forEach(function(doc) {
                 var order = doc.data();
-                totalOrders++;
-                totalRevenue += order.totalAmount || 0;
+                var status = order.status || 'confirmed';
+                if (status !== 'cancelled') {
+                    totalOrders++;
+                    totalRevenue += order.totalAmount || 0;
+                }
 
                 var customerName = order.customerName || '-';
                 var customerEmail = isAdmin ? (order.customerEmail || '-') : maskEmail(order.customerEmail);
                 var customerPhone = isAdmin ? (order.customerPhone || '-') : maskPhone(order.customerPhone);
 
-                var status = order.status || 'confirmed';
                 var statusClass = status === 'cancelled' ? 'cancelled' : 'confirmed';
 
                 var itemsHtml = '';
                 if (order.items) {
                     order.items.forEach(function(item) {
-                        totalItems += item.qty || 0;
+                        if (status !== 'cancelled') totalItems += item.qty || 0;
                         var emoji = emojiMap[item.name] || '🍴';
                         itemsHtml +=
                             '<div class="order-items-row">' +

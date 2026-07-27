@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>All Orders - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Nunito', sans-serif; background: #f5f5f5; min-height: 100vh; color: #333; }
+
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff; padding: 1.5rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; }
+        .page-header a { color: #fff; text-decoration: none; font-weight: 600; opacity: 0.9; }
+        .page-header a:hover { opacity: 1; }
+
+        .stats-row {
+            max-width: 1200px; margin: 1.5rem auto; padding: 0 1.5rem;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+        }
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 1.2rem 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .stat-card .stat-label { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 800; color: #222; margin-top: 0.3rem; }
+        .stat-card .stat-value.revenue { color: #27ae60; }
+        .stat-card .stat-value.orders { color: #3498db; }
+        .stat-card .stat-value.items { color: #ff3838; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+
+        .orders-list { display: flex; flex-direction: column; gap: 1rem; }
+
+        .order-card {
+            background: #fff; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .order-card-header {
+            padding: 1rem 1.5rem; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 1px solid #f0f0f0;
+            flex-wrap: wrap; gap: 0.5rem;
+        }
+        .order-id-tag {
+            background: #ff3838; color: #fff; font-size: 0.8rem; font-weight: 700;
+            padding: 0.3rem 0.8rem; border-radius: 6px; letter-spacing: 1px;
+        }
+        .order-date { font-size: 0.85rem; color: #999; }
+        .order-status {
+            font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.7rem;
+            border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .order-status.confirmed { background: #e8f5e9; color: #2e7d32; }
+        .order-status.pending { background: #fff8e1; color: #f57f17; }
+
+        .order-card-body { padding: 1rem 1.5rem; }
+
+        .customer-info {
+            display: flex; gap: 2rem; flex-wrap: wrap;
+            padding-bottom: 0.75rem; border-bottom: 1px solid #f5f5f5;
+            margin-bottom: 0.75rem;
+        }
+        .customer-info .info-item { font-size: 0.85rem; }
+        .customer-info .info-label { color: #999; font-size: 0.75rem; }
+        .customer-info .info-value { font-weight: 700; color: #333; }
+
+        .order-items-row {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.35rem 0; font-size: 0.85rem;
+        }
+        .order-items-row .oi-name { flex: 1; color: #555; }
+        .order-items-row .oi-qty { color: #999; min-width: 40px; }
+        .order-items-row .oi-price { font-weight: 700; color: #333; min-width: 60px; text-align: right; }
+
+        .order-card-footer {
+            padding: 0.75rem 1.5rem; background: #fafafa;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .order-total-label { font-size: 0.85rem; color: #999; }
+        .order-total-amount { font-size: 1.2rem; font-weight: 800; color: #ff3838; }
+
+        .loading { text-align: center; padding: 4rem; color: #aaa; font-size: 1.1rem; }
+        .loading i { font-size: 2rem; margin-bottom: 1rem; display: block; }
+
+        .no-orders { text-align: center; padding: 4rem; color: #aaa; }
+        .no-orders i { font-size: 3rem; margin-bottom: 1rem; display: block; color: #ddd; }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .customer-info { gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <a href="index.html"><i class="fas fa-arrow-left"></i> Back</a>
+    <h1><i class="fas fa-clipboard-list"></i> All Orders</h1>
+    <span id="live-badge" style="font-size:0.8rem; opacity:0.7;"><i class="fas fa-circle" style="color:#2ecc71;font-size:0.6rem;"></i> Live</span>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value orders" id="stat-orders">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value revenue" id="stat-revenue">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Items Sold</div>
+        <div class="stat-value items" id="stat-items">-</div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="orders-container">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            Loading orders...
+        </div>
+    </div>
+</div>
+
+<script>
+    firebase.initializeApp({
+        apiKey: "AIzaSyDq6_tH9wDCuUJUrg1kkkQphCY7MM4tDlw",
+        authDomain: "food-ordering-886f0.firebaseapp.com",
+        projectId: "food-ordering-886f0",
+        storageBucket: "food-ordering-886f0.firebasestorage.app",
+        messagingSenderId: "996591308228",
+        appId: "1:996591308228:web:461c3007a6b65955452891"
+    });
+    var db = firebase.firestore();
+
+    var emojiMap = {
+        'Samosa': '🥟', 'Papri Chaat': '🍽️', 'Chaat': '🍛',
+        'Maggi': '🍜', 'Cake': '🎂', 'Ice Cream': '🍦',
+        'Tasty Burger': '🍔', 'Tasty Cakes': '🧁', 'Tasty Sweets': '🍬',
+        'Tasty Cupcakes': '🧁', 'Cold Drinks': '🥤', 'Cold Ice-Cream': '🍦'
+    };
+
+    db.collection('orders').orderBy('timestamp', 'desc').onSnapshot(function(snapshot) {
+        var container = document.getElementById('orders-container');
+        var totalOrders = 0, totalRevenue = 0, totalItems = 0;
+
+        if (snapshot.empty) {
+            container.innerHTML =
+                '<div class="no-orders">' +
+                '<i class="fas fa-shopping-basket"></i>' +
+                '<p>No orders yet</p>' +
+                '</div>';
+            document.getElementById('stat-orders').textContent = '0';
+            document.getElementById('stat-revenue').textContent = '₹0';
+            document.getElementById('stat-items').textContent = '0';
+            return;
+        }
+
+        var html = '<div class="orders-list">';
+
+        snapshot.forEach(function(doc) {
+            var order = doc.data();
+            totalOrders++;
+            totalRevenue += order.totalAmount || 0;
+
+            var itemsHtml = '';
+            if (order.items) {
+                order.items.forEach(function(item) {
+                    totalItems += item.qty || 0;
+                    var emoji = emojiMap[item.name] || '🍴';
+                    itemsHtml +=
+                        '<div class="order-items-row">' +
+                        '<span>' + emoji + '</span>' +
+                        '<span class="oi-name">' + item.name + '</span>' +
+                        '<span class="oi-qty">x' + item.qty + '</span>' +
+                        '<span class="oi-price">₹' + item.subtotal + '</span>' +
+                        '</div>';
+                });
+            }
+
+            html +=
+                '<div class="order-card">' +
+                '<div class="order-card-header">' +
+                '<span class="order-id-tag">' + order.orderId + '</span>' +
+                '<span class="order-date"><i class="far fa-clock"></i> ' + (order.orderDate || '') + '</span>' +
+                '<span class="order-status ' + (order.status || 'confirmed') + '">' + (order.status || 'confirmed') + '</span>' +
+                '</div>' +
+                '<div class="order-card-body">' +
+                '<div class="customer-info">' +
+                '<div class="info-item"><div class="info-label">Customer</div><div class="info-value">' + (order.customerName || '-') + '</div></div>' +
+                '<div class="info-item"><div class="info-label">Email</div><div class="info-value">' + (order.customerEmail || '-') + '</div></div>' +
+                '<div class="info-item"><div class="info-label">Phone</div><div class="info-value">' + (order.customerPhone || '-') + '</div></div>' +
+                '</div>' +
+                itemsHtml +
+                '</div>' +
+                '<div class="order-card-footer">' +
+                '<span class="order-total-label">Total</span>' +
+                '<span class="order-total-amount">₹' + (order.totalAmount || 0) + '</span>' +
+                '</div>' +
+                '</div>';
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+
+        document.getElementById('stat-orders').textContent = totalOrders;
+        document.getElementById('stat-revenue').textContent = '₹' + totalRevenue;
+        document.getElementById('stat-items').textContent = totalItems;
+    });
+</script>
+</body>
+</html>

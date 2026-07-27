@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -508,6 +511,18 @@
 <div class="toast" id="toast"></div>
 
 <script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyDq6_tH9wDCuUJUrg1kkkQphCY7MM4tDlw",
+        authDomain: "food-ordering-886f0.firebaseapp.com",
+        projectId: "food-ordering-886f0",
+        storageBucket: "food-ordering-886f0.firebasestorage.app",
+        messagingSenderId: "996591308228",
+        appId: "1:996591308228:web:461c3007a6b65955452891",
+        measurementId: "G-2ZG3LCF8L2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
     var emojiMap = {
         'Samosa': '🥟', 'Papri Chaat': '🍽️', 'Chaat': '🍛',
         'Maggi': '🍜', 'Cake': '🎂', 'Ice Cream': '🍦',
@@ -669,33 +684,56 @@
 
         document.getElementById('order-overlay').classList.add('active');
 
-        var emailSubject = 'Order Confirmation - ' + orderId + ' | Food Order';
-        var emailBody =
-            'Hi ' + custName + '!\n\n' +
-            'Your order has been confirmed.\n\n' +
-            '================================\n' +
-            'ORDER ID: ' + orderId + '\n' +
-            'Date: ' + dateStr + '\n' +
-            'Phone: ' + custPhone + '\n' +
-            '================================\n\n' +
-            'ORDER ITEMS:\n' +
-            itemsText + '\n' +
-            '================================\n' +
-            'TOTAL: Rs.' + totalPrice + '\n' +
-            '================================\n\n' +
-            'Thank you for ordering with Food!\n' +
-            'Your food will be delivered soon.';
-
-        var gmailUrl = 'https://mail.google.com/mail/?view=cm' +
-            '&to=' + encodeURIComponent(custEmail) +
-            '&su=' + encodeURIComponent(emailSubject) +
-            '&body=' + encodeURIComponent(emailBody);
-
         var emailStatus = document.getElementById('email-status');
-        emailStatus.className = 'email-status sent';
-        emailStatus.innerHTML = '<i class="fas fa-check-circle"></i> Order summary ready! Gmail will open in a new tab.';
+        emailStatus.className = 'email-status sending';
+        emailStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving order & preparing email...';
 
-        window.open(gmailUrl, '_blank');
+        var orderData = {
+            orderId: orderId,
+            customerName: custName,
+            customerEmail: custEmail,
+            customerPhone: custPhone,
+            items: cart.map(function(item) {
+                return { name: item.name, price: item.price, qty: item.qty, subtotal: item.price * item.qty };
+            }),
+            totalAmount: totalPrice,
+            orderDate: dateStr,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            status: 'confirmed'
+        };
+
+        db.collection('orders').doc(orderId).set(orderData).then(function() {
+            var emailSubject = 'Order Confirmation - ' + orderId + ' | Food Order';
+            var emailBody =
+                'Hi ' + custName + '!\n\n' +
+                'Your order has been confirmed.\n\n' +
+                '================================\n' +
+                'ORDER ID: ' + orderId + '\n' +
+                'Date: ' + dateStr + '\n' +
+                'Phone: ' + custPhone + '\n' +
+                '================================\n\n' +
+                'ORDER ITEMS:\n' +
+                itemsText + '\n' +
+                '================================\n' +
+                'TOTAL: Rs.' + totalPrice + '\n' +
+                '================================\n\n' +
+                'Thank you for ordering with Food!\n' +
+                'Your food will be delivered soon.';
+
+            var gmailUrl = 'https://mail.google.com/mail/?view=cm' +
+                '&to=' + encodeURIComponent(custEmail) +
+                '&su=' + encodeURIComponent(emailSubject) +
+                '&body=' + encodeURIComponent(emailBody);
+
+            emailStatus.className = 'email-status sent';
+            emailStatus.innerHTML = '<i class="fas fa-check-circle"></i> Order saved! Gmail opening with summary...';
+
+            window.open(gmailUrl, '_blank');
+        }).catch(function(error) {
+            console.error('Firestore error:', error);
+            emailStatus.className = 'email-status failed';
+            emailStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Order placed but could not save to database. Your Order ID: ' + orderId;
+        });
 
         localStorage.removeItem('foodCart');
     }

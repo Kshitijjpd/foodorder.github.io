@@ -26,7 +26,7 @@
         'MENU (ONLY these items exist, nothing else):\n' +
         menuItems.map(function(i) { return i.name + ' = ₹' + i.price; }).join(', ') + '\n\n' +
         'RULES:\n' +
-        '1. Match the user\'s language. If they write Hindi/Hinglish, reply in Hinglish. If they write English, reply in English. Never refuse to speak a language.\n' +
+        '1. ALWAYS reply in the SAME language the user writes in. If they write Chinese, reply in Chinese. French? Reply in French. Spanish, Japanese, Korean, Arabic, ANY language — reply in that language. Auto-detect and match.\n' +
         '2. Keep replies to 1-2 SHORT sentences max. Never write long paragraphs.\n' +
         '3. ONLY talk about items on the menu above. Never suggest items not on the menu.\n' +
         '4. If asked about non-food topics, playfully redirect to food ordering.\n' +

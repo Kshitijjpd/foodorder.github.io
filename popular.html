@@ -8,6 +8,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <style>
         .box .btn-group {
@@ -118,119 +120,10 @@
     <section class="popular" id="popular">
         <h1 class="heading"> most <span>popular</span> foods </h1>
 
-        <div class="box-container">
-            <div class="box">
-                <span class="price"> 20rs - 30rs </span>
-                <img src="images/p-1.jpg" alt="">
-                <h3>tasty burger</h3>
-                <div class="stars">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                </div>
-                <div class="btn-group">
-                    <a href="order.html" class="btn">order now</a>
-                    <button class="btn-cart" onclick="addToCart('Tasty Burger', 25, this)">
-                        <i class="fas fa-cart-plus"></i> add to cart
-                    </button>
-                </div>
-            </div>
-
-            <div class="box">
-                <span class="price"> 10rs - 20rs </span>
-                <img src="images/p-2.jpg" alt="">
-                <h3>tasty cakes</h3>
-                <div class="stars">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                </div>
-                <div class="btn-group">
-                    <a href="order.html" class="btn">order now</a>
-                    <button class="btn-cart" onclick="addToCart('Tasty Cakes', 15, this)">
-                        <i class="fas fa-cart-plus"></i> add to cart
-                    </button>
-                </div>
-            </div>
-
-            <div class="box">
-                <span class="price"> 5rs - 20rs </span>
-                <img src="images/p-3.jpg" alt="">
-                <h3>tasty sweets</h3>
-                <div class="stars">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                </div>
-                <div class="btn-group">
-                    <a href="order.html" class="btn">order now</a>
-                    <button class="btn-cart" onclick="addToCart('Tasty Sweets', 10, this)">
-                        <i class="fas fa-cart-plus"></i> add to cart
-                    </button>
-                </div>
-            </div>
-
-            <div class="box">
-                <span class="price"> 10rs- 20rs </span>
-                <img src="images/p-4.jpg" alt="">
-                <h3>tasty cupcakes</h3>
-                <div class="stars">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                </div>
-                <div class="btn-group">
-                    <a href="order.html" class="btn">order now</a>
-                    <button class="btn-cart" onclick="addToCart('Tasty Cupcakes', 15, this)">
-                        <i class="fas fa-cart-plus"></i> add to cart
-                    </button>
-                </div>
-            </div>
-
-            <div class="box">
-                <span class="price"> 5rs- 20rs </span>
-                <img src="images/p-5.jpg" alt="">
-                <h3>cold drinks</h3>
-                <div class="stars">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                </div>
-                <div class="btn-group">
-                    <a href="order.html" class="btn">order now</a>
-                    <button class="btn-cart" onclick="addToCart('Cold Drinks', 10, this)">
-                        <i class="fas fa-cart-plus"></i> add to cart
-                    </button>
-                </div>
-            </div>
-
-            <div class="box">
-                <span class="price"> 5rs - 20rs </span>
-                <img src="images/p-6.jpg" alt="">
-                <h3>cold ice-cream</h3>
-                <div class="stars">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="far fa-star"></i>
-                </div>
-                <div class="btn-group">
-                    <a href="order.html" class="btn">order now</a>
-                    <button class="btn-cart" onclick="addToCart('Cold Ice-Cream', 10, this)">
-                        <i class="fas fa-cart-plus"></i> add to cart
-                    </button>
-                </div>
+        <div class="box-container" id="products-container">
+            <div style="text-align:center;padding:3rem;color:#999;font-size:1.6rem;grid-column:1/-1;">
+                <i class="fas fa-spinner fa-spin" style="font-size:2.5rem;display:block;margin-bottom:1rem;"></i>
+                Loading menu...
             </div>
         </div>
     </section>
@@ -241,6 +134,16 @@
 
     <script src="script.js"></script>
     <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyDq6_tH9wDCuUJUrg1kkkQphCY7MM4tDlw",
+            authDomain: "food-ordering-886f0.firebaseapp.com",
+            projectId: "food-ordering-886f0",
+            storageBucket: "food-ordering-886f0.firebasestorage.app",
+            messagingSenderId: "996591308228",
+            appId: "1:996591308228:web:461c3007a6b65955452891"
+        });
+        var db = firebase.firestore();
+
         function getCart() {
             return JSON.parse(localStorage.getItem('foodCart') || '[]');
         }
@@ -294,7 +197,39 @@
             }, 2000);
         }
 
+        function loadMenuItems() {
+            db.collection('products').where('active', '==', true).onSnapshot(function(snapshot) {
+                var container = document.getElementById('products-container');
+                if (snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center;padding:3rem;color:#999;font-size:1.6rem;grid-column:1/-1;"><i class="fas fa-utensils" style="font-size:2.5rem;display:block;margin-bottom:1rem;"></i>No items available right now</div>';
+                    return;
+                }
+                var html = '';
+                snapshot.forEach(function(doc) {
+                    var p = doc.data();
+                    var imgSrc = p.image || 'images/p-1.jpg';
+                    html +=
+                        '<div class="box">' +
+                        '<span class="price"> ' + (p.priceRange || '₹' + p.price) + ' </span>' +
+                        '<img src="' + imgSrc + '" alt="' + p.name + '">' +
+                        '<h3>' + p.name.toLowerCase() + '</h3>' +
+                        '<div class="stars">' +
+                        '<i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>' +
+                        '</div>' +
+                        '<div class="btn-group">' +
+                        '<a href="order.html" class="btn">order now</a>' +
+                        '<button class="btn-cart" onclick="addToCart(\'' + p.name.replace(/'/g, "\\'") + '\',' + p.price + ',this)">' +
+                        '<i class="fas fa-cart-plus"></i> add to cart' +
+                        '</button>' +
+                        '</div>' +
+                        '</div>';
+                });
+                container.innerHTML = html;
+            });
+        }
+
         updateCartCount();
+        loadMenuItems();
     </script>
     <script src="chatbot.js"></script>
 </body>

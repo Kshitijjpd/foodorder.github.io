@@ -334,6 +334,70 @@
         }
         .no-offers i { font-size: 2rem; display: block; margin-bottom: 0.5rem; color: #ddd; }
 
+        /* Menu Panel */
+        .menu-panel {
+            display: none; max-width: 1200px; margin: 0 auto 1.5rem; padding: 0 1.5rem;
+        }
+        .menu-panel.active { display: block; }
+        .menu-panel-card {
+            background: #fff; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .menu-panel-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .menu-panel-header h3 { font-size: 1rem; font-weight: 700; color: #222; }
+        .btn-new-product {
+            background: linear-gradient(135deg, #2c3e50, #3498db); color: #fff;
+            border: none; padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.82rem;
+            transition: all 0.2s;
+        }
+        .btn-new-product:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(52,152,219,0.3); }
+        .menu-panel-body { padding: 1.25rem 1.5rem; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+
+        .product-card {
+            border-radius: 12px; overflow: hidden;
+            border: 2px solid #f0f0f0; transition: all 0.2s;
+        }
+        .product-card:hover { border-color: #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+        .product-card.inactive { opacity: 0.5; }
+        .product-card-img { width: 100%; height: 120px; object-fit: cover; background: #f5f5f5; }
+        .product-card-info { padding: 0.75rem 1rem; }
+        .product-card-name { font-size: 0.92rem; font-weight: 800; color: #333; }
+        .product-card-price { font-size: 1.1rem; font-weight: 800; color: #ff3838; margin: 0.15rem 0; }
+        .product-card-range { font-size: 0.72rem; color: #999; }
+        .product-card-badge {
+            display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.5rem;
+            border-radius: 20px; text-transform: uppercase; margin-top: 0.2rem;
+        }
+        .product-card-badge.active-b { background: #e8f5e9; color: #2e7d32; }
+        .product-card-badge.inactive-b { background: #eee; color: #999; }
+        .product-card-actions {
+            padding: 0.5rem 1rem; background: #fafafa;
+            display: flex; justify-content: flex-end; gap: 0.5rem;
+            border-top: 1px solid #f0f0f0;
+        }
+        .product-card-actions button {
+            padding: 0.3rem 0.7rem; border-radius: 6px; border: none; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.72rem;
+            transition: all 0.15s;
+        }
+        .btn-edit-product { background: #e3f2fd; color: #1565c0; }
+        .btn-edit-product:hover { background: #bbdefb; }
+        .btn-toggle-product { background: #fff3e0; color: #f57f17; }
+        .btn-toggle-product:hover { background: #ffe0b2; }
+        .btn-toggle-product.activate { background: #e8f5e9; color: #2e7d32; }
+        .btn-toggle-product.activate:hover { background: #c8e6c9; }
+        .btn-delete-product { background: #fce4ec; color: #c62828; }
+        .btn-delete-product:hover { background: #f8bbd0; }
+        .no-products { text-align: center; padding: 2rem; color: #bbb; font-size: 0.9rem; }
+        .no-products i { font-size: 2rem; display: block; margin-bottom: 0.5rem; color: #ddd; }
+        .modal-btn.product-btn { background: linear-gradient(135deg, #2c3e50, #3498db); margin-top: 0.5rem; }
+        .modal-btn.product-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(52,152,219,0.3); }
+
         .toast {
             position: fixed; bottom: 2rem; right: 2rem; background: #333; color: #fff;
             padding: 0.8rem 1.5rem; border-radius: 10px; font-size: 0.85rem; z-index: 99999;
@@ -348,6 +412,7 @@
             .order-card-header { flex-direction: column; align-items: flex-start; }
             .form-row { flex-direction: column; gap: 0; }
             .offers-grid { grid-template-columns: 1fr; }
+            .products-grid { grid-template-columns: repeat(2, 1fr); }
             .admin-list-item { flex-direction: column; align-items: flex-start; }
         }
     </style>
@@ -392,6 +457,21 @@
                     <i class="fas fa-plus"></i> Add Admin
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Menu Panel (all admins) -->
+<div class="menu-panel" id="menu-panel">
+    <div class="menu-panel-card">
+        <div class="menu-panel-header">
+            <h3><i class="fas fa-utensils"></i> Menu Management</h3>
+            <button class="btn-new-product" onclick="openProductModal()">
+                <i class="fas fa-plus"></i> New Item
+            </button>
+        </div>
+        <div class="menu-panel-body">
+            <div class="products-grid" id="products-list"></div>
         </div>
     </div>
 </div>
@@ -511,6 +591,48 @@
     </div>
 </div>
 
+<!-- Product Modal -->
+<div class="modal-overlay" id="product-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-utensils"></i> <span id="product-modal-title">Add New Item</span></h2>
+            <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-error" id="product-error"></div>
+            <div class="modal-success" id="product-success"></div>
+            <input type="hidden" id="product-edit-id" value="">
+            <div class="input-group">
+                <label>Item Name</label>
+                <input type="text" id="product-name" placeholder="e.g. Tasty Burger, Samosa">
+            </div>
+            <div class="form-row">
+                <div class="input-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="product-price" placeholder="e.g. 25" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Price Range Text</label>
+                    <input type="text" id="product-range" placeholder="e.g. 20rs - 30rs">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="input-group">
+                    <label>Image Path / URL</label>
+                    <input type="text" id="product-image" placeholder="e.g. images/p-1.jpg or https://...">
+                </div>
+                <div class="input-group">
+                    <label>Emoji</label>
+                    <input type="text" id="product-emoji" placeholder="e.g. 🍔" maxlength="4">
+                </div>
+            </div>
+            <button class="modal-btn product-btn" onclick="saveProduct()">
+                <i class="fas fa-check"></i> <span id="product-save-text">Add Item</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -535,6 +657,12 @@
         'Tasty Burger': '🍔', 'Tasty Cakes': '🧁', 'Tasty Sweets': '🍬',
         'Tasty Cupcakes': '🧁', 'Cold Drinks': '🥤', 'Cold Ice-Cream': '🍦'
     };
+    db.collection('products').onSnapshot(function(snapshot) {
+        snapshot.forEach(function(doc) {
+            var p = doc.data();
+            if (p.emoji) emojiMap[p.name] = p.emoji;
+        });
+    });
 
     function maskEmail(email) {
         if (!email) return '-';
@@ -564,6 +692,35 @@
         });
     }
     seedSuperAdmin();
+
+    function seedProducts() {
+        var defaults = [
+            { name: 'Tasty Burger', price: 25, image: 'images/p-1.jpg', emoji: '🍔', range: '20rs - 30rs' },
+            { name: 'Tasty Cakes', price: 15, image: 'images/p-2.jpg', emoji: '🧁', range: '10rs - 20rs' },
+            { name: 'Tasty Sweets', price: 10, image: 'images/p-3.jpg', emoji: '🍬', range: '5rs - 20rs' },
+            { name: 'Tasty Cupcakes', price: 15, image: 'images/p-4.jpg', emoji: '🧁', range: '10rs - 20rs' },
+            { name: 'Cold Drinks', price: 10, image: 'images/p-5.jpg', emoji: '🥤', range: '5rs - 20rs' },
+            { name: 'Cold Ice-Cream', price: 10, image: 'images/p-6.jpg', emoji: '🍦', range: '5rs - 20rs' },
+            { name: 'Samosa', price: 10, image: '', emoji: '🥟', range: '5rs - 15rs' },
+            { name: 'Papri Chaat', price: 20, image: '', emoji: '🍽️', range: '15rs - 25rs' },
+            { name: 'Chaat', price: 30, image: '', emoji: '🍛', range: '25rs - 35rs' },
+            { name: 'Maggi', price: 40, image: '', emoji: '🍜', range: '35rs - 45rs' },
+            { name: 'Cake', price: 60, image: '', emoji: '🎂', range: '50rs - 70rs' },
+            { name: 'Ice Cream', price: 70, image: '', emoji: '🍦', range: '60rs - 80rs' }
+        ];
+        db.collection('products').limit(1).get().then(function(snapshot) {
+            if (snapshot.empty) {
+                defaults.forEach(function(p) {
+                    db.collection('products').add({
+                        name: p.name, price: p.price, image: p.image, emoji: p.emoji,
+                        priceRange: p.range, active: true,
+                        createdBy: 'system', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+            }
+        });
+    }
+    seedProducts();
 
     /* ─── Login / Logout ─── */
 
@@ -628,11 +785,14 @@
         var btn = document.getElementById('admin-btn');
         var panel = document.getElementById('admin-panel');
         var offersPanel = document.getElementById('offers-panel');
+        var menuPanel = document.getElementById('menu-panel');
         var statsRow = document.getElementById('stats-row');
         if (isAdmin) {
             btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
             btn.classList.add('logged-in');
             statsRow.style.display = 'grid';
+            menuPanel.classList.add('active');
+            loadProducts();
             if (isSuperAdmin) panel.classList.add('active');
             else panel.classList.remove('active');
             if (canManageOffers) offersPanel.classList.add('active');
@@ -643,6 +803,7 @@
             statsRow.style.display = 'none';
             panel.classList.remove('active');
             offersPanel.classList.remove('active');
+            menuPanel.classList.remove('active');
         }
     }
 
@@ -857,6 +1018,134 @@
                     '<button class="btn-edit-offer" onclick="openOfferModal(\'' + doc.id + '\')"><i class="fas fa-edit"></i> Edit</button>' +
                     '<button class="btn-toggle-offer ' + toggleClass + '" onclick="toggleOffer(\'' + doc.id + '\',' + isActive + ')"><i class="fas ' + toggleIcon + '"></i> ' + toggleLabel + '</button>' +
                     '<button class="btn-delete-offer" onclick="deleteOffer(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>' +
+                    '</div>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        });
+    }
+
+    /* ─── Menu Management ─── */
+
+    function openProductModal(editId) {
+        document.getElementById('product-error').classList.remove('show');
+        document.getElementById('product-success').classList.remove('show');
+        document.getElementById('product-edit-id').value = '';
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-price').value = '';
+        document.getElementById('product-range').value = '';
+        document.getElementById('product-image').value = '';
+        document.getElementById('product-emoji').value = '';
+
+        if (editId) {
+            document.getElementById('product-modal-title').textContent = 'Edit Item';
+            document.getElementById('product-save-text').textContent = 'Update Item';
+            document.getElementById('product-edit-id').value = editId;
+            db.collection('products').doc(editId).get().then(function(doc) {
+                if (doc.exists) {
+                    var p = doc.data();
+                    document.getElementById('product-name').value = p.name || '';
+                    document.getElementById('product-price').value = p.price || '';
+                    document.getElementById('product-range').value = p.priceRange || '';
+                    document.getElementById('product-image').value = p.image || '';
+                    document.getElementById('product-emoji').value = p.emoji || '';
+                }
+            });
+        } else {
+            document.getElementById('product-modal-title').textContent = 'Add New Item';
+            document.getElementById('product-save-text').textContent = 'Add Item';
+        }
+
+        document.getElementById('product-modal').classList.add('active');
+    }
+
+    function closeProductModal() {
+        document.getElementById('product-modal').classList.remove('active');
+    }
+
+    function saveProduct() {
+        var name = document.getElementById('product-name').value.trim();
+        var price = Number(document.getElementById('product-price').value);
+        var range = document.getElementById('product-range').value.trim();
+        var image = document.getElementById('product-image').value.trim();
+        var emoji = document.getElementById('product-emoji').value.trim();
+        var editId = document.getElementById('product-edit-id').value;
+        var errEl = document.getElementById('product-error');
+
+        errEl.classList.remove('show');
+
+        if (!name) { errEl.textContent = 'Enter item name'; errEl.classList.add('show'); return; }
+        if (!price || price <= 0) { errEl.textContent = 'Enter valid price'; errEl.classList.add('show'); return; }
+
+        if (!range) range = price + 'rs';
+        if (!emoji) emoji = '🍴';
+
+        var productData = {
+            name: name, price: price, priceRange: range,
+            image: image, emoji: emoji, active: true,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (editId) {
+            productData.updatedBy = currentAdminEmail;
+            db.collection('products').doc(editId).update(productData).then(function() {
+                closeProductModal();
+                showToast('Item updated: ' + name);
+            });
+        } else {
+            productData.createdBy = currentAdminEmail;
+            productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            db.collection('products').add(productData).then(function() {
+                closeProductModal();
+                showToast('Item added: ' + name);
+            });
+        }
+    }
+
+    function toggleProduct(id, currentlyActive) {
+        db.collection('products').doc(id).update({ active: !currentlyActive }).then(function() {
+            showToast(currentlyActive ? 'Item hidden from menu' : 'Item visible on menu');
+        });
+    }
+
+    function deleteProduct(id) {
+        if (!confirm('Permanently delete this item?')) return;
+        db.collection('products').doc(id).delete().then(function() {
+            showToast('Item deleted');
+        });
+    }
+
+    function loadProducts() {
+        db.collection('products').orderBy('name').onSnapshot(function(snapshot) {
+            var container = document.getElementById('products-list');
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="no-products"><i class="fas fa-utensils"></i>No items yet. Add one!</div>';
+                return;
+            }
+            var html = '';
+            snapshot.forEach(function(doc) {
+                var p = doc.data();
+                var isActive = p.active !== false;
+                var imgHtml = p.image
+                    ? '<img class="product-card-img" src="' + p.image + '" alt="' + p.name + '">'
+                    : '<div class="product-card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;">' + (p.emoji || '🍴') + '</div>';
+                var toggleClass = isActive ? '' : 'activate';
+                var toggleIcon = isActive ? 'fa-eye-slash' : 'fa-eye';
+                var toggleLabel = isActive ? 'Hide' : 'Show';
+
+                html +=
+                    '<div class="product-card ' + (isActive ? '' : 'inactive') + '">' +
+                    imgHtml +
+                    '<div class="product-card-info">' +
+                    '<div class="product-card-name">' + (p.emoji || '') + ' ' + p.name + '</div>' +
+                    '<div class="product-card-price">₹' + p.price + '</div>' +
+                    (p.priceRange ? '<div class="product-card-range">' + p.priceRange + '</div>' : '') +
+                    '<span class="product-card-badge ' + (isActive ? 'active-b' : 'inactive-b') + '">' + (isActive ? 'Active' : 'Hidden') + '</span>' +
+                    '</div>' +
+                    '<div class="product-card-actions">' +
+                    '<button class="btn-edit-product" onclick="openProductModal(\'' + doc.id + '\')"><i class="fas fa-edit"></i> Edit</button>' +
+                    '<button class="btn-toggle-product ' + toggleClass + '" onclick="toggleProduct(\'' + doc.id + '\',' + isActive + ')"><i class="fas ' + toggleIcon + '"></i> ' + toggleLabel + '</button>' +
+                    '<button class="btn-delete-product" onclick="deleteProduct(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>' +
                     '</div>' +
                     '</div>';
             });

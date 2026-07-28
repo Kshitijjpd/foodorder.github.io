@@ -14,7 +14,7 @@ function googleTranslateElementInit() {
 
     var s = document.createElement('script');
     s.type = 'text/javascript';
-    s.src = 'https://translate.google.com/translate_element.js?cb=googleTranslateElementInit';
+    s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.head.appendChild(s);
 
     var css = document.createElement('style');

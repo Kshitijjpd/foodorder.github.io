@@ -4,46 +4,46 @@ function googleTranslateElementInit() {
         includedLanguages: 'hi,zh-CN,es,fr,ar,ja,ko,de,pt,ru,it,th,vi,bn,ta,te,mr,gu,kn,ml,pa,ur',
         layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
         autoDisplay: false
-    }, 'google_translate_element');
+    }, 'gt-box');
 }
 
 (function() {
-    var el = document.createElement('div');
-    el.id = 'google_translate_element';
-    el.style.cssText = 'position:fixed;top:10px;right:10px;z-index:100000;background:#fff;padding:6px 12px;border-radius:10px;box-shadow:0 2px 15px rgba(0,0,0,0.15);';
-    document.body.appendChild(el);
+    var wrap = document.createElement('div');
+    wrap.id = 'gt-wrap';
+    wrap.innerHTML = '<span id="gt-icon">🌐</span><div id="gt-box"></div>';
+    document.body.appendChild(wrap);
 
     var s = document.createElement('script');
-    s.type = 'text/javascript';
     s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.head.appendChild(s);
 
     var css = document.createElement('style');
     css.textContent =
-        '.goog-te-banner-frame{display:none!important;visibility:hidden!important;height:0!important;width:0!important;overflow:hidden!important;}' +
+        '#gt-wrap{position:fixed;top:12px;right:12px;z-index:100000;display:flex;align-items:center;gap:4px;}' +
+        '#gt-icon{font-size:1.2rem;cursor:pointer;background:rgba(0,0,0,0.6);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;}' +
+        '#gt-box{overflow:hidden;max-width:0;opacity:0;transition:all .3s ease;}' +
+        '#gt-wrap:hover #gt-box,#gt-wrap.open #gt-box{max-width:200px;opacity:1;}' +
+        '#gt-box .goog-te-gadget{font-size:0!important;color:transparent!important;}' +
+        '#gt-box .goog-te-gadget>span{display:none!important;}' +
+        '#gt-box .goog-te-combo{background:#fff;border:1px solid #ddd;border-radius:6px;padding:4px 6px;font-size:12px;font-family:"Nunito",sans-serif;cursor:pointer;outline:none;color:#333;}' +
+        '.goog-te-banner-frame,iframe.goog-te-banner-frame,.skiptranslate iframe{display:none!important;height:0!important;visibility:hidden!important;}' +
         'body{top:0!important;position:static!important;}' +
-        '#goog-gt-tt{display:none!important;}' +
-        '.goog-te-balloon-frame{display:none!important;}' +
+        '#goog-gt-tt,.goog-te-balloon-frame{display:none!important;}' +
         '.goog-text-highlight{background:none!important;box-shadow:none!important;}' +
-        'iframe.goog-te-banner-frame{display:none!important;}' +
         '.skiptranslate{display:none!important;}' +
-        '#google_translate_element .skiptranslate{display:block!important;}' +
-        '#google_translate_element{display:block!important;}';
+        '#gt-box .skiptranslate{display:block!important;}' +
+        '#gt-wrap,#gt-box{display:block!important;}' +
+        '@media(max-width:480px){#gt-wrap{top:8px;right:8px;}#gt-icon{width:28px;height:28px;font-size:1rem;}}';
     document.head.appendChild(css);
 
-    function killBanner() {
-        var frames = document.querySelectorAll('.goog-te-banner-frame, iframe.skiptranslate');
-        for (var i = 0; i < frames.length; i++) {
-            frames[i].style.display = 'none';
-            frames[i].style.height = '0';
-            frames[i].style.visibility = 'hidden';
-        }
-        document.body.style.top = '0px';
-        document.body.style.position = 'static';
-    }
+    document.getElementById('gt-icon').addEventListener('click', function() {
+        wrap.classList.toggle('open');
+    });
 
+    function killBanner() {
+        var frames = document.querySelectorAll('.goog-te-banner-frame,iframe.skiptranslate');
+        for (var i = 0; i < frames.length; i++) { frames[i].style.display = 'none'; frames[i].style.height = '0'; }
+        document.body.style.top = '0px';
+    }
     setInterval(killBanner, 500);
-    setTimeout(killBanner, 1000);
-    setTimeout(killBanner, 2000);
-    setTimeout(killBanner, 3000);
 })();

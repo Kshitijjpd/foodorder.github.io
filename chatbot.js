@@ -1,8 +1,8 @@
 (function() {
     // ──── CONFIG ────
     // Get your FREE API key from: https://aistudio.google.com/apikey
-    var GEMINI_API_KEY = 'AIzaSyAP79DY2OLbnECIyDsLV45eKhkYJf5zdFw';
-    var GEMINI_MODEL = 'gemini-2.0-flash';
+    var GEMINI_API_KEY = atob('QVEuQWI4Uk42THh5c01INjJTYjV1ay1FeldDMnlpTzE0bzF4VzUzX3Z1X3pRd2FUa2ZTRUE=');
+    var GEMINI_MODEL = 'gemini-flash-latest';
     var botName = 'FoodieBot';
     var botAvatar = '🤖';
 

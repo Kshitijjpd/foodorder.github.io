@@ -330,6 +330,32 @@
         .offer-applied-banner button { margin-left: auto; }
         .confirm-discount { color: #27ae60 !important; }
 
+        /* Recommendations */
+        .reco-section { margin-top: 1.5rem; padding-top: 1rem; border-top: 2px dashed #eee; }
+        .reco-title {
+            font-size: 0.85rem; font-weight: 700; color: #ff3838;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .reco-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+        .reco-card {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.6rem 0.8rem; background: linear-gradient(135deg, #fff8e1, #fff3e0);
+            border: 2px solid #ffe082; border-radius: 10px; cursor: pointer;
+            font-family: 'Nunito', sans-serif; transition: all 0.2s;
+        }
+        .reco-card:hover { border-color: #ff3838; background: #fff5f5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,56,56,0.1); }
+        .reco-emoji { font-size: 1.3rem; }
+        .reco-info { flex: 1; min-width: 0; }
+        .reco-name { font-weight: 700; font-size: 0.82rem; color: #333; }
+        .reco-reason { font-size: 0.68rem; color: #999; }
+        .reco-price { font-weight: 800; font-size: 0.8rem; color: #ff3838; }
+        .reco-badge {
+            font-size: 0.6rem; font-weight: 700; background: #ff3838; color: #fff;
+            padding: 0.1rem 0.4rem; border-radius: 4px; text-transform: uppercase;
+            display: inline-block; margin-bottom: 0.2rem;
+        }
+
         @media (max-width: 768px) {
             .main-container { grid-template-columns: 1fr; padding: 0 1rem 2rem; margin: 1rem auto; }
             .cart-section { order: -1; }
@@ -337,6 +363,7 @@
             .offer-item { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem; }
             .offer-item .offer-info { min-width: 60%; }
             .offer-applied-banner { flex-wrap: wrap; gap: 0.4rem; font-size: 0.78rem; }
+            .reco-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .page-header h1 { font-size: 1.4rem; }
@@ -400,6 +427,11 @@
                 <button class="clear-cart-btn" onclick="clearCart()">
                     <i class="fas fa-trash-alt"></i> Clear Cart
                 </button>
+            </div>
+
+            <div class="reco-section" id="reco-section" style="display:none;">
+                <div class="reco-title"><i class="fas fa-magic"></i> AI Recommended for You</div>
+                <div class="reco-grid" id="reco-container"></div>
             </div>
 
             <div class="add-more-section">
@@ -961,8 +993,99 @@
         setTimeout(function() { toast.classList.remove('show'); }, 1500);
     }
 
+    var recoPairings = {
+        'Tasty Burger': [{name:'Cold Drinks',reason:'Perfect combo'},{name:'Ice Cream',reason:'Dessert ke liye'},{name:'Cold Ice-Cream',reason:'Thanda finish'}],
+        'Samosa': [{name:'Chaat',reason:'Chatpata combo'},{name:'Papri Chaat',reason:'Snack pair'},{name:'Cold Drinks',reason:'Thanda saath mein'}],
+        'Papri Chaat': [{name:'Samosa',reason:'Classic pair'},{name:'Cold Drinks',reason:'Refreshing'},{name:'Chaat',reason:'Full chaat platter'}],
+        'Chaat': [{name:'Samosa',reason:'Snack combo'},{name:'Cold Drinks',reason:'Thanda saath'},{name:'Papri Chaat',reason:'Chaat lover'}],
+        'Maggi': [{name:'Cold Drinks',reason:'Classic combo'},{name:'Tasty Burger',reason:'Full meal'},{name:'Samosa',reason:'Side snack'}],
+        'Cake': [{name:'Ice Cream',reason:'Deadly combo'},{name:'Cold Drinks',reason:'Celebrate!'},{name:'Tasty Cakes',reason:'Sweet platter'}],
+        'Ice Cream': [{name:'Cake',reason:'Perfect pair'},{name:'Cold Drinks',reason:'Refreshing'},{name:'Tasty Cakes',reason:'Meetha combo'}],
+        'Tasty Cakes': [{name:'Ice Cream',reason:'Sweet combo'},{name:'Cold Drinks',reason:'Light saath'},{name:'Cake',reason:'Bakery platter'}],
+        'Tasty Sweets': [{name:'Cold Drinks',reason:'Balance taste'},{name:'Chaat',reason:'Sweet + Spicy'},{name:'Ice Cream',reason:'Meetha overload'}],
+        'Tasty Cupcakes': [{name:'Ice Cream',reason:'Sweet pair'},{name:'Cold Drinks',reason:'Light combo'},{name:'Cake',reason:'Bakery special'}],
+        'Cold Drinks': [{name:'Samosa',reason:'Snack + Drink'},{name:'Tasty Burger',reason:'Meal combo'},{name:'Maggi',reason:'Quick bite'}],
+        'Cold Ice-Cream': [{name:'Cake',reason:'Classic dessert'},{name:'Tasty Cakes',reason:'Sweet combo'},{name:'Cold Drinks',reason:'Cold platter'}]
+    };
+    var defaultRecos = [
+        {name:'Tasty Burger',reason:'Bestseller 🔥'},{name:'Samosa',reason:'Most popular'},{name:'Ice Cream',reason:'Must try'},{name:'Cold Drinks',reason:'Refreshing'}
+    ];
+
+    function renderRecommendations() {
+        var cart = getCart();
+        var section = document.getElementById('reco-section');
+        var container = document.getElementById('reco-container');
+
+        var cartNames = {};
+        for (var i = 0; i < cart.length; i++) cartNames[cart[i].name] = true;
+
+        var recos = [];
+        if (cart.length > 0) {
+            var scored = {};
+            for (var j = 0; j < cart.length; j++) {
+                var pairs = recoPairings[cart[j].name];
+                if (pairs) {
+                    for (var k = 0; k < pairs.length; k++) {
+                        if (!cartNames[pairs[k].name]) {
+                            if (!scored[pairs[k].name]) scored[pairs[k].name] = { name: pairs[k].name, reason: pairs[k].reason, score: 0 };
+                            scored[pairs[k].name].score++;
+                        }
+                    }
+                }
+            }
+            for (var s in scored) recos.push(scored[s]);
+            recos.sort(function(a, b) { return b.score - a.score; });
+        }
+
+        if (recos.length === 0) {
+            for (var d = 0; d < defaultRecos.length; d++) {
+                if (!cartNames[defaultRecos[d].name]) recos.push(defaultRecos[d]);
+            }
+        }
+
+        recos = recos.slice(0, 4);
+        if (recos.length === 0) { section.style.display = 'none'; return; }
+
+        section.style.display = 'block';
+        var html = '';
+        for (var r = 0; r < recos.length; r++) {
+            var item = null;
+            for (var m = 0; m < menuData.length; m++) {
+                if (menuData[m].name === recos[r].name) { item = menuData[m]; break; }
+            }
+            if (!item) continue;
+            var badge = recos[r].score > 1 ? '<span class="reco-badge">Top pick</span>' : '';
+            html +=
+                '<div class="reco-card" onclick="quickAdd(\'' + item.name + '\',' + item.price + ')">' +
+                '<span class="reco-emoji">' + item.emoji + '</span>' +
+                '<div class="reco-info">' + badge +
+                '<div class="reco-name">' + item.name + '</div>' +
+                '<div class="reco-reason">' + recos[r].reason + '</div>' +
+                '</div>' +
+                '<span class="reco-price">₹' + item.price + '</span>' +
+                '</div>';
+        }
+        container.innerHTML = html;
+    }
+
+    var menuData = [
+        {name:'Samosa',price:10,emoji:'🥟'},{name:'Papri Chaat',price:20,emoji:'🍽️'},
+        {name:'Chaat',price:30,emoji:'🍛'},{name:'Maggi',price:40,emoji:'🍜'},
+        {name:'Cake',price:60,emoji:'🎂'},{name:'Ice Cream',price:70,emoji:'🍦'},
+        {name:'Tasty Burger',price:25,emoji:'🍔'},{name:'Tasty Cakes',price:15,emoji:'🧁'},
+        {name:'Tasty Sweets',price:10,emoji:'🍬'},{name:'Tasty Cupcakes',price:15,emoji:'🧁'},
+        {name:'Cold Drinks',price:10,emoji:'🥤'},{name:'Cold Ice-Cream',price:10,emoji:'🍦'}
+    ];
+
+    var origRenderCart = renderCart;
+    renderCart = function() {
+        origRenderCart();
+        renderRecommendations();
+    };
+
     renderCart();
     loadActiveOffers();
 </script>
+<script src="chatbot.js"></script>
 </body>
 </html>
